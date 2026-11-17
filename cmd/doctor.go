@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -149,7 +148,3 @@ func runDoctor(ctx context.Context, out io.Writer, opts doctorOptions) error {
 	return nil
 }
 
-// Keep the diagnostic label compact for command output.
-func doctorHeader() string {
-	return strings.TrimSpace("K9s Dev · Cluster Doctor")
-}
