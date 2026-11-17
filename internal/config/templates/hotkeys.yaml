@@ -10,7 +10,7 @@ hotKeys:
   quick-workloads:
     shortCut: shift-1
     description: Workloads
-    command: workloads
+    command: workload
     keepHistory: true
   quick-deployments:
     shortCut: shift-2
