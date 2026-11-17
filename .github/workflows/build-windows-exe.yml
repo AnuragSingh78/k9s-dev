@@ -1,0 +1,54 @@
+name: K9s Dev - Windows executable
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature/emerald-ui-windows
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: k9s-dev-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-exe:
+    name: Build Windows x64 EXE
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Go required by go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run command and configuration tests
+        run: go test ./cmd ./internal/config
+
+      - name: Cross-compile standalone Windows EXE
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags="-s -w -X github.com/derailed/k9s/cmd.version=dev-emerald" -o dist/k9s-dev.exe .
+          test -s dist/k9s-dev.exe
+
+      - name: Upload downloadable EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: k9s-dev-windows-amd64
+          path: dist/k9s-dev.exe
+          if-no-files-found: error
+          retention-days: 30
