@@ -81,7 +81,7 @@ Invalid type. Expected: object, given: array`,
 			assert.Equal(t, "#07140d", s.Table().BgColor.String())
 			assert.Equal(t, tcell.NewHexColor(0xa8eacb), s.FgColor())
 			assert.Equal(t, tcell.NewHexColor(0x07140d), s.BgColor())
-			assert.Equal(t, tcell.NewHexColor(0x07140d), tview.Styles.PrimitiveBackgroundColor)
+			assert.Equal(t, tcell.ColorBlack.TrueColor(), tview.Styles.PrimitiveBackgroundColor)
 		})
 	}
 }
