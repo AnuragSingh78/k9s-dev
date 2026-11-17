@@ -42,3 +42,13 @@ hotKeys:
     description: Persistent Volume Claims
     command: persistentvolumeclaims
     keepHistory: true
+  quick-pulse:
+    shortCut: shift-8
+    description: Cluster pulse dashboard
+    command: pulse
+    keepHistory: true
+  quick-xray:
+    shortCut: shift-9
+    description: Workload relationship explorer
+    command: xray
+    keepHistory: true
