@@ -34,10 +34,19 @@ func TestDoctorUnknownContext(t *testing.T) {
 	config := filepath.Join(t.TempDir(), "config")
 	content := []byte(`apiVersion: v1
 kind: Config
-clusters: []
-contexts: []
-current-context: ""
-users: []
+clusters:
+  - name: local
+    cluster:
+      server: https://127.0.0.1:6443
+contexts:
+  - name: known
+    context:
+      cluster: local
+      user: dev
+current-context: known
+users:
+  - name: dev
+    user: {}
 `)
 	if err := os.WriteFile(config, content, 0600); err != nil {
 		t.Fatal(err)
