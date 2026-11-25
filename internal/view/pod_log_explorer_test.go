@@ -93,3 +93,27 @@ func TestPreviewLogTableFiltersWithoutDataLoss(t *testing.T) {
 	assert.Len(t, o.logShown, 3)
 	assert.True(t, strings.Contains(o.logSummary(), "131072"))
 }
+
+func TestPreviewLogRowsSupportSingleClick(t *testing.T) {
+	app := NewApp(mock.NewMockConfig(t))
+	dock := newPodOpsDock(app)
+	dock.setLogEntries([]podLogEntry{
+		parsePodLogEntry("2026-11-25T07:40:00Z INFO ready"),
+		parsePodLogEntry("2026-11-25T07:40:01Z ERROR failed"),
+	}, "gateway", nil)
+	require.Equal(t, 2, len(dock.logShown))
+
+	for row := 1; row <= 2; row++ {
+		for column := 0; column < 3; column++ {
+			cell := dock.logTable.GetCell(row, column)
+			assert.NotNil(t, cell.Clicked, "mouse click should open detail for row %d, column %d", row, column)
+		}
+	}
+	// Re-rendering after a filter must preserve click handlers.
+	dock.logMode = "ERROR"
+	dock.renderLogs()
+	require.Len(t, dock.logShown, 1)
+	for col := 0; col < 3; col++ {
+		assert.NotNil(t, dock.logTable.GetCell(1, col).Clicked)
+	}
+}
