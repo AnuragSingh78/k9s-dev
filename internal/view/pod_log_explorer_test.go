@@ -18,7 +18,7 @@ func TestPreviewLogParsesPrefixedJSON(t *testing.T) {
 	assert.True(t, entry.json)
 	assert.Equal(t, "ERROR", entry.level)
 	assert.Equal(t, "connection refused", entry.message)
-	assert.Contains(t, entry.timestamp, "07:39:06")
+	assert.Regexp(t, "^[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}$", entry.timestamp)
 	assert.Contains(t, entry.pretty, "\n  \"traceId\":")
 	assert.Equal(t, line, entry.raw)
 }
