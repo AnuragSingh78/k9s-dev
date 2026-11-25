@@ -106,6 +106,10 @@ func (a *App) Init(version string, _ int) error {
 	a.Content.AddListener(a.Menu())
 
 	a.App.Init()
+	// Emerald is designed for both keyboard and mouse. The stock K9s
+	// enableMouse=false default otherwise prevents single-click log inspection.
+	// An explicit k9s.ui.emeraldMouse=false restores keyboard-only behavior.
+	a.Application.EnableMouse(a.Config.K9s.UI.EmeraldMouseEnabled())
 	a.SetInputCapture(a.keyboard)
 	a.bindKeys()
 
