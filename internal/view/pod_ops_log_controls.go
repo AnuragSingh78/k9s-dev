@@ -175,12 +175,20 @@ func (o *podOpsDock) renderLogs() {
 	}
 	for row, index := range o.logShown {
 		e := o.logRows[index]
-		o.logTable.SetCell(row+1, 0, tview.NewTableCell(e.timestamp))
+		// Click once on any cell to open the beautified entry. Defer the
+		// transition until after tview finishes the mouse event and focus
+		// changes; otherwise its default click handler steals focus back.
+		clicked := func() bool {
+			o.app.QueueUpdateDraw(func() { o.showLogDetail(e) })
+			return true
+		}
+		o.logTable.SetCell(row+1, 0, tview.NewTableCell(e.timestamp).SetClickedFunc(clicked))
 		level := tview.NewTableCell(e.level)
 		level.SetTextColor(tcell.GetColor(previewLevelColor(e.level)))
+		level.SetClickedFunc(clicked)
 		o.logTable.SetCell(row+1, 1, level)
 		msg := strings.ReplaceAll(e.message, "\n", " ")
-		o.logTable.SetCell(row+1, 2, tview.NewTableCell(msg))
+		o.logTable.SetCell(row+1, 2, tview.NewTableCell(msg).SetClickedFunc(clicked))
 	}
 	if len(o.logShown) == 0 {
 		o.logTable.SetCell(1, 0, tview.NewTableCell("No matching log entries (try 'a' or clear the filter)"))
