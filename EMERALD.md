@@ -103,6 +103,47 @@ The Windows pipeline runs command tests, configuration tests, and the existing
 TUI regression suite (`go test ./cmd ./internal/config ./internal/view`).
 Only a successful run publishes the `k9s-dev-windows-amd64` artifact.
 
+## Emerald Operations — redesigned default Pods screen
+
+The **Pods screen itself** now opens as an operations cockpit. This is a
+real terminal UI, not a decorative screenshot:
+
+- A **compact header** replaces the large ASCII logo only while the cockpit
+  is displayed; other K9s resource pages retain their normal header.
+- A **keyboard-operated navigation rail** offers Pods, Deployments, Services,
+  Events, Nodes, Namespaces, Helm, Pulse, XRay and more.
+- Five counters above the **real K9s pods table** show visible pods, ready,
+  issues, completed and restarts. These are derived from the visible table
+  rows, *not* total Kubernetes cluster inventory. Completed Jobs are not
+  counted as unhealthy.
+- A lower **three-column investigation pane** follows the highlighted pod:
+  Pod Doctor, recent container logs, and UID-filtered pod Events.
+- Selecting a different pod automatically refreshes the lower panes after a
+  short debounce; in-flight requests for the previous selection are cancelled.
+- Native K9s shortcuts, filters, sorting, logs, shell, YAML, descriptions and
+  plugins remain in the existing table.
+
+| Keys | Action |
+|---|---|
+| `Shift+B` | Toggle full-table K9s view versus Emerald Operations cockpit |
+| `Ctrl+N` | Focus the resource navigation rail |
+| `Up/Down` then `Enter` in navigation | Open the chosen native resource view |
+| `Esc` or `Tab` in navigation | Return keyboard focus to the table |
+| `Shift+V` | Open the dedicated full-page Pod Workspace |
+| `Shift+D` | Open the dedicated full-page Pod Doctor |
+| `Ctrl+E` | Toggle the header |
+
+The dashboard is visible by default when entering `:pods`, including at
+startup when Pods is the configured starting page. Switching to other resource
+views automatically hides the extra dashboard panels. The temporary selection
+logs are *bounded on-demand snapshots*, not long-running watch streams; use
+`l` for real-time streaming.
+
+A screenshot of a UI concept is **not** a promise of rounded buttons, neon glow,
+or embedded browser controls: terminals provide borders, text styling, lists,
+real tables and keyboard/mouse navigation. The navigation list is functional,
+and the same Kubernetes authentication/RBAC rules apply as before.
+
 ## Phase 3 — Pod Workspace and Pod Doctor (terminal UI)
 
 Select a pod in `:pods` and press **Shift+V** to open the **Pod Workspace**.
