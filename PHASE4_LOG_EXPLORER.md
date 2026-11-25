@@ -18,7 +18,7 @@ Tab cycles **Sidebar → Pods → Pod Doctor → Recent Logs → Pod Events → 
 |---|---|---|
 | Cockpit | Tab / Shift+Tab | Switch pane forward / backward |
 | Pods | Shift+B | Toggle original full-height table |
-| Recent Logs (compact) | Up/Down, Enter | Select entry, then open full-screen beautified detail |
+| Recent Logs (compact) | Up/Down, Enter, or one mouse click | Select a log and open its full-screen beautified detail |
 | Recent Logs (pretty) | Enter | Return to compact table |
 | Recent Logs | b | Toggle beautified whole-pane mode |
 | Recent Logs | / | Focus filter input, type to search, Enter to apply, Esc to clear |
@@ -54,4 +54,4 @@ Tests cover JSON and plain text, severity, malformed input, raw retention, byte/
 
 ## Follow-on work, not claimed as completed
 
-Persistent settings per Kubernetes context; multiline exception folding; merged multi-pod logs; in-pane streaming; and one-mouse-click detail activation (Enter works reliably now, including in terminals whose mouse driver does not emit the necessary events).
+Persistent settings per Kubernetes context; multiline exception folding; merged multi-pod logs; in-pane streaming. Single-click activation is implemented through the TUI table-cell handlers; Enter remains the keyboard alternative.
