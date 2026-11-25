@@ -103,6 +103,42 @@ The Windows pipeline runs command tests, configuration tests, and the existing
 TUI regression suite (`go test ./cmd ./internal/config ./internal/view`).
 Only a successful run publishes the `k9s-dev-windows-amd64` artifact.
 
+## Phase 3 — Pod Workspace and Pod Doctor (terminal UI)
+
+Select a pod in `:pods` and press **Shift+V** to open the **Pod Workspace**.
+Press **Shift+D** to open the same view focused on **Pod Doctor**.
+
+The new viewer uses ordinary tview/tcell terminal primitives: a green
+header/footer and three scrollable bordered panes. It is **not** a separate
+desktop interface, so all existing Kubernetes viewers continue to work.
+
+| Key in the workspace | Action |
+|---|---|
+| `Tab` / `Shift+Tab` | Move focus between diagnostics, recent logs and pod events |
+| `r` | Refresh the three read-only snapshots |
+| `l` | Open the existing full, streaming K9s log viewer |
+| `e` | Open the normal namespace Events viewer |
+| `Esc` or `q` | Return to the pods table |
+| `Ctrl+E` | Existing global K9s toggle to hide the large header |
+
+**Pod Doctor** detects CrashLoopBackOff, previous OOMKilled termination,
+non-zero exits, image-pull failures, missing configuration, repeated restarts,
+unscheduled pods, not-ready pods and warning events. For each finding it
+suggests an investigation; it does **not** restart or modify workloads.
+
+The workspace reads the selected pod with Kubernetes GET; it attempts a
+namespace-scoped Events list filtered by pod name/UID, and a **bounded**
+snapshot of up to 80 recent log lines (128 KiB) for the pod's default or first
+regular container. When the container is in CrashLoopBackOff and has restarted,
+the preview requests previous-container logs. Log/event RBAC failures appear
+in their own panes rather than hiding the other diagnostic information.
+
+**Limitations:** the preview is an on-demand snapshot, not a continuous
+stream; press `r` to reload or `l` for live logs. The event pane shows up to
+20 events from the first 100 API-matched events; it may not contain every
+historical event. Pod Doctor findings are evidence-based hints, not automatic
+root-cause determinations. No secrets or environment variables are fetched.
+
 ## Cluster Doctor
 
 Run:
