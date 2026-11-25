@@ -144,6 +144,26 @@ or embedded browser controls: terminals provide borders, text styling, lists,
 real tables and keyboard/mouse navigation. The navigation list is functional,
 and the same Kubernetes authentication/RBAC rules apply as before.
 
+## Mouse interaction and keyboard-only opt-out
+
+Emerald now **enables terminal mouse interaction by default**, including when
+an existing upstream K9s config has `enableMouse: false`. This lets you
+single-click a Recent Logs row (any of its three cells) to open that entry in
+the beautified detail viewer. Enter continues to work without mouse support.
+
+To explicitly disable mouse event handling in this fork, set the following in
+your existing K9s configuration file:
+
+```yaml
+k9s:
+  ui:
+    emeraldMouse: false
+```
+
+Setting `emeraldMouse: true` or omitting it enables mouse support. This field
+is an Emerald-only extension; upstream K9s uses `enableMouse`. Physical
+single-click behavior also depends on the terminal forwarding mouse events.
+
 ## Phase 4 — Interactive Recent Logs
 
 The **main Emerald Pods cockpit** now has a selectable Recent Logs table and
