@@ -233,7 +233,7 @@ func (p *PodWorkspace) loadSnapshot(ctx context.Context) {
 		return eventTimestamp(events[i]).After(eventTimestamp(events[j]))
 	})
 
-	logText := p.fetchRecentLogs(reqCtx, dial, pod)
+	logText := fetchRecentPodLogs(reqCtx, dial, pod)
 	report := renderPodDiagnosis(pod, events)
 	eventText := renderPodEvents(events, eventsErr)
 
@@ -333,7 +333,8 @@ func renderPodEvents(events []v1.Event, listErr error) string {
 	return b.String()
 }
 
-func (p *PodWorkspace) fetchRecentLogs(ctx context.Context, dial kubernetes.Interface, pod *v1.Pod) string {
+// fetchRecentPodLogs is shared by the full-screen and inline pod diagnostic views.
+func fetchRecentPodLogs(ctx context.Context, dial kubernetes.Interface, pod *v1.Pod) string {
 	if len(pod.Spec.Containers) == 0 {
 		return " No regular containers available for log preview."
 	}
