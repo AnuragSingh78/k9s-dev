@@ -82,6 +82,19 @@ func TestPodDoctorCrashloopAndOOM(t *testing.T) {
 	assert.Contains(t, report, "previous container logs")
 }
 
+func TestPodDoctorExit137IsNotAutomaticallyOOM(t *testing.T) {
+	pod := &v1.Pod{Status: v1.PodStatus{ContainerStatuses: []v1.ContainerStatus{{
+		Name: "worker", RestartCount: 1,
+		LastTerminationState: v1.ContainerState{Terminated: &v1.ContainerStateTerminated{
+			Reason: "Error", ExitCode: 137,
+		}},
+	}}}}
+	findings := diagnosePod(pod, nil)
+	require.NotEmpty(t, findings)
+	assert.Contains(t, findings[0].title, "SIGKILL")
+	assert.NotContains(t, findings[0].title, "OOMKilled")
+}
+
 func TestPodWorkspaceIsValidAndKeyboardDriven(t *testing.T) {
 	p := NewPodWorkspace("default/api-gateway", true)
 	require.NoError(t, p.Init(makeContext(t)))
