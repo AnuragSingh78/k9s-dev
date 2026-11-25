@@ -4,6 +4,7 @@
 package view_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/derailed/k9s/internal/config"
@@ -29,7 +30,8 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		u := uu[k]
 		t.Run(k, func(t *testing.T) {
 			u.li.Refresh()
-			assert.Equal(t, u.e, u.li.GetText(false))
+			expected := strings.TrimSuffix(u.e, "\n") + "\n [::b]Explorer[-::] ALL     [::b]JSON[-::] Off     [::d]E errors | W warnings | N reset | J pretty JSON[-::]\n"
+			assert.Equal(t, expected, u.li.GetText(false))
 		})
 	}
 }
@@ -43,4 +45,16 @@ func BenchmarkLogIndicatorRefresh(b *testing.B) {
 	for range b.N {
 		v.Refresh()
 	}
+}
+
+func TestLogIndicatorExplorerModes(t *testing.T) {
+	l := view.NewLogIndicator(config.NewConfig(nil), config.NewStyles(), false)
+	l.SetExplorerMode("ERROR")
+	l.SetPrettyJSON(true)
+	assert.Contains(t, l.GetText(false), "Explorer[-::] ERROR")
+	assert.Contains(t, l.GetText(false), "JSON[-::] On")
+	l.SetExplorerMode("")
+	l.SetPrettyJSON(false)
+	assert.Contains(t, l.GetText(false), "Explorer[-::] ALL")
+	assert.Contains(t, l.GetText(false), "JSON[-::] Off")
 }
