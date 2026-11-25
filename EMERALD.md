@@ -1,6 +1,6 @@
 # K9s Dev — Emerald Edition
 
-This build keeps the existing [K9s](https://k9scli.io/) terminal application and its Kubernetes features. It adds an **embedded emerald/forest-green UI**, keyboard navigation, resource aliases, a **read-only cluster doctor**, and an automated **Windows x64 `.exe` build**.
+This build keeps the existing [K9s](https://k9scli.io/) terminal application and its Kubernetes features. It adds an **embedded emerald/forest-green UI**, keyboard navigation, a **Health Cockpit**, an **advanced log explorer**, resource aliases, a **read-only cluster doctor**, and an automated **Windows x64 `.exe` build**.
 
 ## Download and launch on Windows 11
 
@@ -44,6 +44,64 @@ Press `:` inside K9s and enter a command alias:
 On a fresh config, `Shift+0` through `Shift+9` are mapped to pods, workload dashboard, deployments, services, events, nodes, namespaces, PVCs, Pulse and XRay.
 
 **Terminal caveat:** Some Windows terminals convert `Shift+number` into punctuation; if this happens, use the `:` commands instead. Existing `hotkeys.yaml` / `aliases.yaml` files are intentionally not overwritten. You can copy desired shortcuts from `internal/config/templates/` to your current K9s configuration directory, shown by `k9s-dev.exe info`.
+
+## Phase 2 — Health Cockpit and advanced log exploration
+
+Phase 2 enhances the existing **terminal interface**, without requiring a
+separate dashboard server, Kubernetes custom resources, or new RBAC permissions.
+
+### Health Cockpit
+
+Open the existing Pulse resource dashboard with `:pulse` (or `Shift+8` when
+the first-run hotkeys are installed).
+
+- The border summary shows **HEALTHY / ATTENTION / SCANNING**, healthy resources,
+  unhealthy resources, and the number of resource types sampled so far.
+- The existing Pulse gauges and CPU/memory charts remain available and continue
+  updating from their existing watchers.
+- Press **`e`** to drill down to the resource type with the most unhealthy
+  objects in the latest snapshot, or use the arrow keys and **Enter** to inspect
+  any chart as before.
+- **SCANNING** means not all visible resource types have reported yet. An
+  empty or incomplete snapshot is never treated as fully healthy.
+- Counts cover the resource *categories displayed by Pulse* and can include
+  different Kubernetes objects associated with the same workload; this is not
+  a count of independent applications.
+
+The Health Cockpit **reuses Pulse data**; it does not trigger additional API calls.
+If a role cannot list particular resource types, the summary should not be
+interpreted as proof of cluster-wide health.
+
+### Log Explorer
+
+Open logs using the normal K9s keys (`l` on a selected pod) or the existing
+workload log views. The indicator now has a second line describing the active
+explorer state and shortcuts:
+
+| Key | Behavior |
+|---|---|
+| **Shift+E** | Filter buffered and incoming lines to ERROR, FATAL, PANIC, SEVERE, CRITICAL |
+| **Shift+W** | Filter to WARN or WARNING |
+| **Shift+N** | Clear quick severity mode, restoring your previous manual `/` regex |
+| **Shift+J** | Toggle pretty-printing for complete one-line JSON objects/arrays |
+| **/** | Existing manual case-insensitive regex search (unchanged) |
+| **a**, **s**, **t**, **w**, **f**, **Ctrl+S** | Existing all-container, autoscroll, timestamp, wrap, fullscreen and export actions |
+
+Pressing the same severity shortcut again also toggles that filter off. The
+severity rules match **whole words** case-insensitively. JSON formatting is
+**opt-in** and applies only to complete JSON records starting with `{` or
+`[`. Kubernetes timestamps, container prefixes, ANSI formatting and ordinary
+text remain untouched. JSON indentation is a presentation change only; the
+stored log stream is not modified.
+
+The log explorer reuses K9s's existing bounded log buffer, regex filtering,
+streaming and export features. It does not ship logs to an external service.
+
+### CI validation
+
+The Windows pipeline runs command tests, configuration tests, and the existing
+TUI regression suite (`go test ./cmd ./internal/config ./internal/view`).
+Only a successful run publishes the `k9s-dev-windows-amd64` artifact.
 
 ## Cluster Doctor
 
