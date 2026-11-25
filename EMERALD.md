@@ -152,7 +152,7 @@ a toggleable whole-pane beautified view. See the full
 
 **Navigation:** Tab and Shift+Tab cycle Sidebar, Pods, Pod Doctor, Recent Logs,
 and Pod Events. The old Ctrl+N shortcut is no longer needed. Use the arrows
-inside the focused pane. Enter on a selected log opens a detailed formatted
+inside the focused pane. Enter on a selected log, or single-clicking a log row where terminal mouse events are supported, opens a detailed formatted
 view with the original raw line; Esc returns.
 
 **Recent Logs shortcuts:**
