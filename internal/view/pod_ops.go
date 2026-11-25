@@ -65,6 +65,21 @@ type podOpsDock struct {
 	dock      *tview.Flex
 	details   *tview.TextView
 	logs      *tview.TextView
+	logTable  *tview.Table
+	logPages  *tview.Pages
+	logPanel  *tview.Flex
+	logSearch *tview.InputField
+	logRows   []podLogEntry
+	logShown  []int
+	logTail   int
+	logBytes  int
+	logMode   string
+	logFilter string
+	logContainer string
+	logPretty bool
+	logWrap   bool
+	searching bool
+	dockWeight int
 	events    *tview.TextView
 	source    *Pod
 	path      string
@@ -74,13 +89,16 @@ type podOpsDock struct {
 }
 
 func newPodOpsDock(app *App) *podOpsDock {
-	o := &podOpsDock{app: app}
+	o := &podOpsDock{
+		app: app, logTail: previewDefaultTail,
+		logBytes: previewDefaultBytes, logWrap: true, dockWeight: 6,
+	}
 	bg := app.Styles.BgColor()
 	o.banner = tview.NewTextView().SetDynamicColors(true)
 	o.banner.SetBackgroundColor(bg)
 
 	o.nav = tview.NewList().ShowSecondaryText(false)
-	o.nav.SetBorder(true).SetTitle(" NAVIGATION  Ctrl+N ")
+	o.nav.SetBorder(true).SetTitle(" NAVIGATION [Tab] ")
 	o.nav.SetBackgroundColor(bg)
 	o.nav.SetMainTextColor(app.Styles.FgColor())
 	o.nav.SetSelectedBackgroundColor(tcell.NewHexColor(0x38d58d))
@@ -111,7 +129,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 		o.app.gotoResource(entries[index].command, "", true, true)
 	})
 	o.nav.SetInputCapture(func(evt *tcell.EventKey) *tcell.EventKey {
-		if evt.Key() == tcell.KeyEscape || evt.Key() == tcell.KeyTab {
+		if evt.Key() == tcell.KeyEscape {
 			if top := o.app.Content.Top(); top != nil {
 				o.app.SetFocus(top)
 			}
@@ -134,6 +152,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 	o.details = tview.NewTextView().SetDynamicColors(true)
 	o.logs = tview.NewTextView().SetDynamicColors(true)
 	o.events = tview.NewTextView().SetDynamicColors(true)
+	o.initLogExplorer(bg)
 	o.details.SetTitle(" POD DOCTOR / SELECTED ")
 	o.logs.SetTitle(" RECENT LOGS [snapshot] ")
 	o.events.SetTitle(" POD EVENTS ")
@@ -147,7 +166,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 	}
 	o.dock = tview.NewFlex().SetDirection(tview.FlexColumn)
 	o.dock.AddItem(o.details, 0, 3, false)
-	o.dock.AddItem(o.logs, 0, 4, false)
+	o.dock.AddItem(o.logPanel, 0, 4, false)
 	o.dock.AddItem(o.events, 0, 3, false)
 	o.reset()
 	return o
@@ -155,7 +174,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 
 func (o *podOpsDock) reset() {
 	o.details.SetText(" Select a pod to inspect its health, containers and recent events.")
-	o.logs.SetText(" Select a pod to preview recent container logs.")
+	o.setLogStatus(" Select a pod to preview recent container logs.")
 	o.events.SetText(" Select a pod to inspect its warning and normal events.")
 }
 
@@ -173,7 +192,7 @@ func (o *podOpsDock) refreshBanner(namespace string) {
 	if o.app.Conn() != nil {
 		contextName = o.app.Conn().ActiveContext()
 	}
-	o.banner.SetText(fmt.Sprintf(" [#5bf4aa::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#a8eacb::]Context:[-::] %s   [#a8eacb::]Namespace:[-::] %s   [#5bf4aa::]Ctrl+N[-::] navigate   [#5bf4aa::]Shift+B[-::] full table",
+	o.banner.SetText(fmt.Sprintf(" [#5bf4aa::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#a8eacb::]Context:[-::] %s   [#a8eacb::]Namespace:[-::] %s   [#5bf4aa::]Tab[-::] move   [#5bf4aa::]Enter[-::] beautify log   [#5bf4aa::]Shift+B[-::] full table",
 		tview.Escape(contextName), tview.Escape(namespace)))
 }
 
@@ -233,11 +252,11 @@ func (o *podOpsDock) updateTable(p *Pod) {
 		return
 	}
 	o.details.SetText(" [#5bf4aa::]Inspecting selected pod...[-::]")
-	o.logs.SetText(" Loading bounded log snapshot...")
+	o.setLogStatus(" Loading bounded log snapshot...")
 	o.events.SetText(" Loading pod events...")
 	ctx, cancel := context.WithCancel(context.Background())
 	o.cancel = cancel
-	go o.loadSnapshot(ctx, path)
+	go o.loadSnapshot(ctx, path, o.logTail, o.logBytes)
 }
 
 func (o *podOpsDock) showCounts(c podCounts) {
@@ -263,7 +282,7 @@ func (o *podOpsDock) stopRequest() {
 // loadSnapshot uses the same Kubernetes read requests as the standalone Pod
 // Workspace. A short selection debounce prevents flooding the API on arrow-key
 // navigation; an older selection can never overwrite the newly selected pod.
-func (o *podOpsDock) loadSnapshot(ctx context.Context, path string) {
+func (o *podOpsDock) loadSnapshot(ctx context.Context, path string, tailCount, byteLimit int) {
 	timer := time.NewTimer(175 * time.Millisecond)
 	defer timer.Stop()
 	select {
@@ -309,7 +328,7 @@ func (o *podOpsDock) loadSnapshot(ctx context.Context, path string) {
 		diagnosis += "\n [#ffc56e::]Event access unavailable; some findings may be missing.[-::]"
 	}
 	eventText := renderPodEvents(events, eventErr)
-	logText := fetchRecentPodLogs(ctxReq, dial, pod)
+	logRows, logContainer, logErr := fetchPodLogEntries(ctxReq, dial, pod, tailCount, byteLimit)
 	if ctx.Err() != nil {
 		return
 	}
@@ -318,10 +337,10 @@ func (o *podOpsDock) loadSnapshot(ctx context.Context, path string) {
 			return
 		}
 		o.details.SetText(diagnosis)
-		o.logs.SetText(logText)
+		o.setLogEntries(logRows, logContainer, logErr)
 		o.events.SetText(eventText)
 		o.details.ScrollToBeginning()
-		o.logs.ScrollToEnd()
+		o.logs.ScrollToBeginning()
 		o.events.ScrollToBeginning()
 	})
 }
@@ -335,7 +354,7 @@ func (o *podOpsDock) showError(ctx context.Context, detail string) {
 			return
 		}
 		o.details.SetText("[#ff6b73::b]Unable to inspect pod[-:-:-]\n"+tview.Escape(detail))
-		o.logs.SetText("Pod log snapshot unavailable")
+		o.setLogStatus("Pod log snapshot unavailable")
 		o.events.SetText("Pod events unavailable")
 	})
 }
