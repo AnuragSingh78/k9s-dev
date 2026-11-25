@@ -19,10 +19,10 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		e  string
 	}{
 		"all-containers": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[gray::d]Off[-::]     [::b]Autoscroll:[limegreen::b]On[-::]      [::b]ColumnLock:[gray::d]Off[-::]     [::b]FullScreen:[gray::d]Off[-::]     [::b]Timestamps:[gray::d]Off[-::]     [::b]Wrap:[gray::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[#6b9180::d]Off[-::]     [::b]Autoscroll:[#51ec89::b]On[-::]      [::b]ColumnLock:[#6b9180::d]Off[-::]     [::b]FullScreen:[#6b9180::d]Off[-::]     [::b]Timestamps:[#6b9180::d]Off[-::]     [::b]Wrap:[#6b9180::d]Off[-::]\n",
 		},
 		"plain": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[limegreen::b]On[-::]      [::b]ColumnLock:[gray::d]Off[-::]     [::b]FullScreen:[gray::d]Off[-::]     [::b]Timestamps:[gray::d]Off[-::]     [::b]Wrap:[gray::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[#51ec89::b]On[-::]      [::b]ColumnLock:[#6b9180::d]Off[-::]     [::b]FullScreen:[#6b9180::d]Off[-::]     [::b]Timestamps:[#6b9180::d]Off[-::]     [::b]Wrap:[#6b9180::d]Off[-::]\n",
 		},
 	}
 
@@ -30,7 +30,7 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		u := uu[k]
 		t.Run(k, func(t *testing.T) {
 			u.li.Refresh()
-			expected := strings.TrimSuffix(u.e, "\n") + "\n [::b]Explorer[-::] ALL     [::b]JSON[-::] Off     [::d]E errors | W warnings | N reset | J pretty JSON[-::]\n"
+			expected := strings.TrimSuffix(u.e, "\n") + "\n [::b]Explorer[-::] ALL      [::b]JSON[-::] Off      [::d]E errors | W warnings | N reset | J pretty JSON[-::]\n"
 			assert.Equal(t, expected, u.li.GetText(false))
 		})
 	}
