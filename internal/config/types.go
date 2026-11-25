@@ -19,6 +19,10 @@ type UI struct {
 	// EnableMouse toggles mouse support.
 	EnableMouse bool `json:"enableMouse" yaml:"enableMouse"`
 
+	// EmeraldMouse overrides the Emerald Edition's default-on mouse support.
+	// nil enables mouse interaction; an explicit false turns it off.
+	EmeraldMouse *bool `json:"emeraldMouse,omitempty" yaml:"emeraldMouse,omitempty"`
+
 	// Headless toggles top header display.
 	Headless bool `json:"headless" yaml:"headless"`
 
