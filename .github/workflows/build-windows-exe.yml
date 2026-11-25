@@ -32,8 +32,8 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Run command and configuration tests
-        run: go test ./cmd ./internal/config
+      - name: Run command, configuration, and TUI regression tests
+        run: go test ./cmd ./internal/config ./internal/view
 
       - name: Cross-compile standalone Windows EXE
         env:
