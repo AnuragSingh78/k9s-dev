@@ -129,8 +129,25 @@ func (p *Pod) bindKeys(aa *ui.KeyActions) {
 	}
 
 	aa.Bulk(ui.KeyMap{
-		ui.KeyO: ui.NewKeyAction("Show Node", p.showNode, true),
+		ui.KeyO:      ui.NewKeyAction("Show Node", p.showNode, true),
+		ui.KeyShiftV: ui.NewKeyAction("Pod Workspace", p.workspaceCmd(false), true),
+		ui.KeyShiftD: ui.NewKeyAction("Pod Doctor", p.workspaceCmd(true), true),
 	})
+}
+
+// workspaceCmd opens the read-only, split-panel diagnostics workspace for the
+// selected pod without changing the existing Enter, describe or log actions.
+func (p *Pod) workspaceCmd(doctorFirst bool) func(*tcell.EventKey) *tcell.EventKey {
+	return func(evt *tcell.EventKey) *tcell.EventKey {
+		path := p.GetTable().GetSelectedItem()
+		if path == "" {
+			return evt
+		}
+		if err := p.App().inject(NewPodWorkspace(path, doctorFirst), false); err != nil {
+			p.App().Flash().Err(err)
+		}
+		return nil
+	}
 }
 
 func (p *Pod) logOptions(prev bool) (*dao.LogOptions, error) {
