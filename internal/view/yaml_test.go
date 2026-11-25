@@ -17,48 +17,48 @@ func TestYaml(t *testing.T) {
 		{
 			`api: fred
 		   version: v1`,
-			`[#4682b4::b]api[#ffffff::-]: [#ffefd5::]fred
-		   [#4682b4::b]version[#ffffff::-]: [#ffefd5::]v1`,
+			`[#80e6bd::b]api[#e5fff1::-]: [#bcdeca::]fred
+		   [#80e6bd::b]version[#e5fff1::-]: [#bcdeca::]v1`,
 		},
 		{
 			`api: <<<"search_0">>>fred<<<"">>>
 		   version: v1`,
-			`[#4682b4::b]api[#ffffff::-]: [#ffefd5::]["search_0"]fred[""]
-		   [#4682b4::b]version[#ffffff::-]: [#ffefd5::]v1`,
+			`[#80e6bd::b]api[#e5fff1::-]: [#bcdeca::]["search_0"]fred[""]
+		   [#80e6bd::b]version[#e5fff1::-]: [#bcdeca::]v1`,
 		},
 		{
 			`api:
 			version: v1`,
-			`[#4682b4::b]api[#ffffff::-]:
-			[#4682b4::b]version[#ffffff::-]: [#ffefd5::]v1`,
+			`[#80e6bd::b]api[#e5fff1::-]:
+			[#80e6bd::b]version[#e5fff1::-]: [#bcdeca::]v1`,
 		},
 		{
 			"      fred:blee",
-			"[#ffefd5::]      fred:blee",
+			"[#bcdeca::]      fred:blee",
 		},
 		{
 			"fred blee: blee",
-			"[#4682b4::b]fred blee[#ffffff::-]: [#ffefd5::]blee",
+			"[#80e6bd::b]fred blee[#e5fff1::-]: [#bcdeca::]blee",
 		},
 		{
 			"Node-Selectors:  <none>",
-			"[#4682b4::b]Node-Selectors[#ffffff::-]: [#ffefd5::] <none>",
+			"[#80e6bd::b]Node-Selectors[#e5fff1::-]: [#bcdeca::] <none>",
 		},
 		{
 			"fred.blee:  <none>",
-			"[#4682b4::b]fred.blee[#ffffff::-]: [#ffefd5::] <none>",
+			"[#80e6bd::b]fred.blee[#e5fff1::-]: [#bcdeca::] <none>",
 		},
 		{
 			"certmanager.k8s.io/cluster-issuer: nameOfClusterIssuer",
-			"[#4682b4::b]certmanager.k8s.io/cluster-issuer[#ffffff::-]: [#ffefd5::]nameOfClusterIssuer",
+			"[#80e6bd::b]certmanager.k8s.io/cluster-issuer[#e5fff1::-]: [#bcdeca::]nameOfClusterIssuer",
 		},
 		{
 			"Message: Pod The node was low on resource: [DiskPressure].",
-			"[#4682b4::b]Message[#ffffff::-]: [#ffefd5::]Pod The node was low on resource: [DiskPressure[].",
+			"[#80e6bd::b]Message[#e5fff1::-]: [#bcdeca::]Pod The node was low on resource: [DiskPressure[].",
 		},
 		{
 			`data: "<<<"`,
-			`[#4682b4::b]data[#ffffff::-]: [#ffefd5::]"<<<"`,
+			`[#80e6bd::b]data[#e5fff1::-]: [#bcdeca::]"<<<"`,
 		},
 	}
 
