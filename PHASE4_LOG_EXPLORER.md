@@ -8,6 +8,15 @@ The main Pods screen keeps the original K9s resource table, sidebar, health coun
 
 The behavior is **read-only** unless the operator explicitly chooses to copy or export logs. No extra Kubernetes roles, background log watches or third-party services are added.
 
+## Default mouse support
+
+The Emerald build enables tview mouse events by default, including with older
+K9s configurations where `k9s.ui.enableMouse` is false. Set
+`k9s.ui.emeraldMouse: false` in your existing K9s config to explicitly opt
+out. Single-clicking any cell in a compact log row opens the formatted record;
+Enter is always available in keyboard-only terminals. Within the log search
+field, Tab/Shift+Tab now also continue the normal pane cycle.
+
 ## Focus and navigation
 
 Tab cycles **Sidebar → Pods → Pod Doctor → Recent Logs → Pod Events → Sidebar**. Shift+Tab goes backward. The active pane gets keyboard focus; arrows move or scroll within that pane. Sidebar Enter opens a native K9s resource view. Ctrl+N is no longer required. On other K9s screens, the upstream shortcuts remain unchanged.
