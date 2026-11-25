@@ -68,9 +68,12 @@ func diagnosePod(pod *v1.Pod, events []v1.Event) []podFinding {
 					"Inspect container logs and termination message")
 			}
 			if last := cs.LastTerminationState.Terminated; last != nil {
-				if last.Reason == "OOMKilled" || last.ExitCode == 137 {
+				if last.Reason == "OOMKilled" {
 					add("ERROR", prefix+" OOMKilled", fmt.Sprintf("Previous exit %d, restarts %d", last.ExitCode, cs.RestartCount),
 						"Inspect memory usage and limits; check for memory growth")
+				} else if last.ExitCode == 137 {
+					add("WARN", prefix+" exit 137 (SIGKILL)", fmt.Sprintf("Previous exit %d, restarts %d", last.ExitCode, cs.RestartCount),
+						"Investigate memory pressure and external termination signals; exit 137 alone does not prove OOM")
 				} else if last.ExitCode != 0 && cs.RestartCount > 0 {
 					add("WARN", prefix+" restarted", fmt.Sprintf("Previous exit %d, restarts %d", last.ExitCode, cs.RestartCount),
 						"Inspect previous container logs and readiness/startup probes")
