@@ -64,3 +64,12 @@ type UI struct {
 	manualSplashless *bool
 	manualInvert     *bool
 }
+
+// EmeraldMouseEnabled enables mouse-based pane navigation and single-click log
+// inspection by default. An explicit emeraldMouse value always overrides it.
+func (u UI) EmeraldMouseEnabled() bool {
+	if u.EmeraldMouse != nil {
+		return *u.EmeraldMouse
+	}
+	return true
+}
