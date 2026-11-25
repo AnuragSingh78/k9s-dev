@@ -52,3 +52,27 @@ jobs:
           path: dist/k9s-dev.exe
           if-no-files-found: error
           retention-days: 30
+
+  windows-smoke:
+    name: Smoke test executable on Windows
+    needs: windows-exe
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download built EXE
+        uses: actions/download-artifact@v4
+        with:
+          name: k9s-dev-windows-amd64
+          path: smoke
+
+      - name: Verify EXE can launch without Kubernetes credentials
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path '.\\smoke\\k9s-dev.exe')) {
+            throw 'Windows executable artifact is missing'
+          }
+          & .\\smoke\\k9s-dev.exe --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'k9s-dev.exe --help failed on Windows' }
+          & .\\smoke\\k9s-dev.exe doctor --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'k9s-dev.exe doctor --help failed on Windows' }
