@@ -489,6 +489,7 @@ func (t *Table) UpdateUI(cdata, data *model1.TableData) {
 
 	t.updateSelection(true)
 	t.UpdateTitle()
+	t.NotifySelectionObserver()
 }
 
 func (t *Table) buildRow(r int, re, ore *model1.RowEvent, h model1.Header, pads MaxyPad) {
