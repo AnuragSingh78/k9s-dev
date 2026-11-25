@@ -56,14 +56,19 @@ func (o *podOpsDock) initLogExplorer(bg tcell.Color) {
 		o.renderLogs()
 	})
 	o.logSearch.SetDoneFunc(func(key tcell.Key) {
-		switch key {
-		case tcell.KeyEscape:
+		if key == tcell.KeyEscape {
 			o.logSearch.SetText("")
-		case tcell.KeyEnter, tcell.KeyTab, tcell.KeyBacktab:
-			// The visible filter is retained until cleared.
 		}
+		// Enter keeps the visible filter, Escape clears it, and Tab continues
+		// the same forward/backward pane cycle as the rest of Emerald.
 		o.searching = false
 		o.app.SetFocus(o.logFocus())
+		switch key {
+		case tcell.KeyTab:
+			o.focusNext(1)
+		case tcell.KeyBacktab:
+			o.focusNext(-1)
+		}
 	})
 
 	o.logPages = tview.NewPages()
