@@ -51,6 +51,8 @@ type Log struct {
 	follow            bool
 	columnLock        bool
 	requestOneRefresh bool
+	explorerMode      string
+	prettyJSON        bool
 }
 
 var _ model.Component = (*Log)(nil)
@@ -78,7 +80,7 @@ func (l *Log) Init(ctx context.Context) (err error) {
 	l.SetDirection(tview.FlexRow)
 
 	l.indicator = NewLogIndicator(l.app.Config, l.app.Styles, l.isContainerLogView())
-	l.AddItem(l.indicator, 1, 1, false)
+	l.AddItem(l.indicator, 2, 1, false)
 	if !l.model.HasDefaultContainer() {
 		l.indicator.ToggleAllContainers()
 	}
@@ -171,6 +173,8 @@ func (l *Log) LogChanged(lines [][]byte) {
 
 // BufferCompleted indicates input was accepted.
 func (l *Log) BufferCompleted(text, _ string) {
+	l.explorerMode = ""
+	l.indicator.SetExplorerMode("")
 	l.model.Filter(text)
 	l.updateTitle()
 }
@@ -266,6 +270,10 @@ func (l *Log) bindKeys() {
 		ui.KeyW:         ui.NewKeyAction("Toggle Wrap", l.toggleTextWrapCmd, true),
 		tcell.KeyCtrlS:  ui.NewKeyAction("Save", l.SaveCmd, true),
 		ui.KeyC:         ui.NewKeyAction("Copy", cpCmd(l.app.Flash(), l.logs.TextView), true),
+		ui.KeyShiftE:    ui.NewKeyAction("Errors Only", l.quickErrorsCmd, true),
+		ui.KeyShiftW:    ui.NewKeyAction("Warnings Only", l.quickWarningsCmd, true),
+		ui.KeyShiftN:    ui.NewKeyAction("Clear Quick Filter", l.clearQuickFilterCmd, true),
+		ui.KeyShiftJ:    ui.NewKeyAction("Pretty JSONL", l.togglePrettyJSONCmd, true),
 	})
 	if l.model.HasDefaultContainer() {
 		l.logs.Actions().Add(ui.KeyA, ui.NewKeyAction("Toggle AllContainers", l.toggleAllContainers, true))
@@ -281,6 +289,8 @@ func (l *Log) resetCmd(evt *tcell.EventKey) *tcell.EventKey {
 
 	l.logs.cmdBuff.Reset()
 	l.logs.cmdBuff.SetActive(false)
+	l.explorerMode = ""
+	l.indicator.SetExplorerMode("")
 	l.model.Filter(l.logs.cmdBuff.GetText())
 	l.updateTitle()
 
@@ -331,7 +341,9 @@ func (l *Log) updateTitle() {
 	}
 
 	buff := l.logs.cmdBuff.GetText()
-	if buff != "" {
+	if l.explorerMode != "" {
+		title += " " + l.explorerMode + " ONLY"
+	} else if buff != "" {
 		title += ui.SkinTitle(fmt.Sprintf(ui.SearchFmt, buff), &styles)
 	}
 	l.SetTitle(title)
@@ -363,7 +375,11 @@ func (l *Log) Flush(lines [][]byte) {
 		if l.cancelUpdates {
 			break
 		}
-		_, _ = l.ansiWriter.Write(lines[i])
+		line := lines[i]
+		if l.prettyJSON {
+			line = prettyJSONLogLine(line)
+		}
+		_, _ = l.ansiWriter.Write(line)
 	}
 	if l.follow {
 		if l.columnLock {
@@ -377,6 +393,47 @@ func (l *Log) Flush(lines [][]byte) {
 
 // ----------------------------------------------------------------------------
 // Actions...
+
+// Quick severity filters operate on the existing bounded log buffer and
+// stream. The user's manual /regex filter remains available when cleared.
+func (l *Log) setExplorerMode(evt *tcell.EventKey, mode string) *tcell.EventKey {
+	if l.app.InCmdMode() {
+		return evt
+	}
+	if l.explorerMode == mode {
+		l.explorerMode = ""
+	} else {
+		l.explorerMode = mode
+	}
+	l.indicator.SetExplorerMode(l.explorerMode)
+	l.model.Filter(explorerFilter(l.explorerMode, l.logs.cmdBuff.GetText()))
+	l.updateTitle()
+	return nil
+}
+
+func (l *Log) quickErrorsCmd(evt *tcell.EventKey) *tcell.EventKey {
+	return l.setExplorerMode(evt, "ERROR")
+}
+
+func (l *Log) quickWarningsCmd(evt *tcell.EventKey) *tcell.EventKey {
+	return l.setExplorerMode(evt, "WARN")
+}
+
+func (l *Log) clearQuickFilterCmd(evt *tcell.EventKey) *tcell.EventKey {
+	return l.setExplorerMode(evt, "")
+}
+
+func (l *Log) togglePrettyJSONCmd(evt *tcell.EventKey) *tcell.EventKey {
+	if l.app.InCmdMode() {
+		return evt
+	}
+	l.prettyJSON = !l.prettyJSON
+	l.indicator.SetPrettyJSON(l.prettyJSON)
+	// Re-render buffered lines without restarting or reconnecting to log streams.
+	l.model.Filter(explorerFilter(l.explorerMode, l.logs.cmdBuff.GetText()))
+	l.updateTitle()
+	return nil
+}
 
 func (l *Log) sinceCmd(n int) func(evt *tcell.EventKey) *tcell.EventKey {
 	return func(*tcell.EventKey) *tcell.EventKey {
@@ -412,6 +469,8 @@ func (l *Log) filterCmd(evt *tcell.EventKey) *tcell.EventKey {
 	}
 
 	l.logs.cmdBuff.SetActive(false)
+	l.explorerMode = ""
+	l.indicator.SetExplorerMode("")
 	l.model.Filter(l.logs.cmdBuff.GetText())
 	l.updateTitle()
 
