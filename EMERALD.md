@@ -144,6 +144,44 @@ or embedded browser controls: terminals provide borders, text styling, lists,
 real tables and keyboard/mouse navigation. The navigation list is functional,
 and the same Kubernetes authentication/RBAC rules apply as before.
 
+## Phase 4 — Interactive Recent Logs
+
+The **main Emerald Pods cockpit** now has a selectable Recent Logs table and
+a toggleable whole-pane beautified view. See the full
+[Phase 4 implementation specification](PHASE4_LOG_EXPLORER.md).
+
+**Navigation:** Tab and Shift+Tab cycle Sidebar, Pods, Pod Doctor, Recent Logs,
+and Pod Events. The old Ctrl+N shortcut is no longer needed. Use the arrows
+inside the focused pane. Enter on a selected log opens a detailed formatted
+view with the original raw line; Esc returns.
+
+**Recent Logs shortcuts:**
+
+| Shortcut | Effect |
+|---|---|
+| Tab / Shift+Tab | Move between cockpit panels |
+| Up / Down and Enter | Select a log and open its detailed beautified view |
+| b | Switch compact table / whole-pane formatted logs |
+| / | Focus the case-insensitive search field (Enter keeps, Escape clears) |
+| a / e / w / i / d | Filter all / errors / warnings / info / debug |
+| [ / ] | Decrease/increase fetched lines (20–500) |
+| , / . | Decrease/increase maximum fetched bytes (64 KiB–1 MiB) |
+| + / - | Enlarge/shrink the bottom diagnostic panels |
+| r | Reload the selected pod using active settings |
+| W | Toggle wrapping in formatted view |
+| c / C | Copy original / beautified selected log entry |
+| Ctrl+S | Explicitly export visible raw lines to the K9s screen-dump folder |
+| g / G, n / N | Top/bottom and next/previous matching entry |
+
+The compact Recent Logs pane displays TIME, LEVEL and MESSAGE. JSON log lines
+are parsed even when preceded by a Kubernetes timestamp. Both modes retain
+unstructured messages and the original raw text. All application log text is
+escaped before rendering as terminal colors. **This is a bounded snapshot,
+not live streaming**; use the original K9s log viewer for live streams.
+
+Log settings currently persist for the **current session**. Exported files may
+contain sensitive application information; review and redact before sharing.
+
 ## Phase 3 — Pod Workspace and Pod Doctor (terminal UI)
 
 Select a pod in `:pods` and press **Shift+V** to open the **Pod Workspace**.
