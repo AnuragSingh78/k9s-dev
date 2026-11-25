@@ -22,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
 )
 
 const (
@@ -72,6 +73,7 @@ func (*PodWorkspace) SetCommand(*cmd.Interpreter)            {}
 func (*PodWorkspace) SetFilter(string, bool)                 {}
 func (*PodWorkspace) SetLabelSelector(labels.Selector, bool) {}
 func (*PodWorkspace) InCmdMode() bool                        { return false }
+func (p *PodWorkspace) Focus(delegate func(tview.Primitive)) { delegate(p.panels[p.active]) }
 func (*PodWorkspace) ExtraHints() map[string]string          { return nil }
 func (p *PodWorkspace) Name() string                         { return podWorkspaceName }
 func (p *PodWorkspace) Hints() model.MenuHints               { return p.actions.Hints() }
@@ -331,10 +333,51 @@ func renderPodEvents(events []v1.Event, listErr error) string {
 	return b.String()
 }
 
-func (p *PodWorkspace) fetchRecentLogs(ctx context.Context, dial interface {
-	CoreV1() v1.CoreV1Interface
-}, pod *v1.Pod) string {
-	return ""
+func (p *PodWorkspace) fetchRecentLogs(ctx context.Context, dial kubernetes.Interface, pod *v1.Pod) string {
+	if len(pod.Spec.Containers) == 0 {
+		return " No regular containers available for log preview."
+	}
+	container := pod.Spec.Containers[0].Name
+	if preferred, ok := dao.GetDefaultContainer(&pod.ObjectMeta, &pod.Spec); ok {
+		container = preferred
+	}
+
+	previous := false
+	for _, status := range pod.Status.ContainerStatuses {
+		if status.Name == container && status.RestartCount > 0 &&
+			status.State.Waiting != nil && status.State.Waiting.Reason == "CrashLoopBackOff" {
+			previous = true
+			break
+		}
+	}
+	tail, limit := int64(podLogTail), int64(podLogLimit)
+	opts := &v1.PodLogOptions{
+		Container: container, TailLines: &tail,
+		LimitBytes: &limit, Timestamps: true, Previous: previous,
+	}
+	data, err := dial.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, opts).Do(ctx).Raw()
+	if err != nil {
+		return fmt.Sprintf(" [#ffc56e::b]Logs unavailable[-:-:-] (%s)\n %s",
+			tview.Escape(container), tview.Escape(err.Error()))
+	}
+	var b strings.Builder
+	if previous {
+		b.WriteString(" [#ffc56e::b]Showing previous container logs (CrashLoopBackOff)[-:-:-]\n")
+	} else {
+		b.WriteString(" [#5bf4aa::b]Snapshot: last 80 lines (not live stream)[-:-:-]\n")
+	}
+	fmt.Fprintf(&b, " Container: %s\n\n", tview.Escape(container))
+	for _, line := range strings.Split(strings.TrimRight(string(data), "\n"), "\n") {
+		shade := "#a8eacb"
+		switch {
+		case strings.Contains(strings.ToUpper(line), "ERROR"), strings.Contains(strings.ToUpper(line), "FATAL"):
+			shade = "#ff6b73"
+		case strings.Contains(strings.ToUpper(line), "WARN"):
+			shade = "#ffc56e"
+		}
+		fmt.Fprintf(&b, "[%s::]%s[-::]\n", shade, tview.Escape(line))
+	}
+	return b.String()
 }
 
 func (p *PodWorkspace) fullLogsCmd(*tcell.EventKey) *tcell.EventKey {
