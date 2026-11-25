@@ -254,6 +254,29 @@ func (a *App) contextNames() ([]string, error) {
 }
 
 func (a *App) keyboard(evt *tcell.EventKey) *tcell.EventKey {
+	// The Emerald cockpit is a real multi-pane keyboard workspace. Handle
+	// navigation before K9s global actions (notably '-' and Enter) while the
+	// Pods page is active, without changing other resource viewers.
+	if a.podOps != nil && a.podOps.visible && !a.InCmdMode() {
+		if _, isPod := a.Content.Top().(*Pod); isPod {
+			if a.podOps.searching {
+				return evt // Let the log search field receive typed input.
+			}
+			switch evt.Key() {
+			case tcell.KeyTab:
+				direction := 1
+				if evt.Modifiers()&tcell.ModShift != 0 { direction = -1 }
+				a.podOps.focusNext(direction)
+				return nil
+			case tcell.KeyBacktab:
+				a.podOps.focusNext(-1)
+				return nil
+			}
+			if a.podOps.handleLogKey(evt) {
+				return nil
+			}
+		}
+	}
 	if k, ok := a.HasAction(ui.AsKey(evt)); ok && !a.Content.IsTopDialog() {
 		return k.Action(evt)
 	}
@@ -270,7 +293,6 @@ func (a *App) bindKeys() {
 		ui.KeyRightBracket: ui.NewSharedKeyAction("Go Forward", a.nextCommand, false),
 		ui.KeyDash:         ui.NewSharedKeyAction("Last View", a.lastCommand, false),
 		tcell.KeyCtrlA:     ui.NewSharedKeyAction("Aliases", a.aliasCmd, false),
-		tcell.KeyCtrlN:     ui.NewSharedKeyAction("Cockpit Navigation", a.focusCockpitNavCmd, false),
 		tcell.KeyEnter:     ui.NewKeyAction("Goto", a.gotoCmd, false),
 		tcell.KeyCtrlC:     ui.NewKeyAction("Quit", a.quitCmd, false),
 	}))
