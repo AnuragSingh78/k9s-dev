@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/derailed/k9s/internal/config/mock"
+	"github.com/derailed/k9s/internal/model"
 	"github.com/derailed/tcell/v2"
 )
 
@@ -60,4 +61,14 @@ func TestPodOpsTabFocusHighlights(t *testing.T) {
 	assert.Equal(t, active, dock.events.GetBorderColor())
 	assert.Equal(t, normal, dock.logTable.GetBorderColor())
 	assert.Contains(t, dock.events.GetTitle(), "[ACTIVE]")
+}
+
+func TestPodOpsExposesWatchFailuresInCompactHeader(t *testing.T) {
+	app := NewApp(mock.NewMockConfig(t))
+	dock := newPodOpsDock(app)
+	dock.visible = true
+	dock.setStatus(model.FlashErr, "Watcher failed for pods")
+	assert.Contains(t, dock.banner.GetText(false), "Watcher failed for pods")
+	dock.clearStatus()
+	assert.NotContains(t, dock.banner.GetText(false), "Watcher failed for pods")
 }
