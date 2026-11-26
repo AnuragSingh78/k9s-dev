@@ -175,7 +175,9 @@ func newPodOpsDock(app *App) *podOpsDock {
 }
 
 func (o *podOpsDock) reset() {
-	o.details.SetText(" Select a pod to inspect its health, containers and recent events.")
+	o.details.SetText(" No pod selected. If the Pods table remains empty, press Ctrl+R to refresh.
+ Check the active context, namespace, filters and list permissions.
+ You can compare with: kubectl get pods -n <namespace>")
 	o.setLogStatus(" Select a pod to preview recent container logs.")
 	o.events.SetText(" Select a pod to inspect its warning and normal events.")
 }
