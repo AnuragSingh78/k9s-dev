@@ -696,6 +696,10 @@ func (a *App) Run() error {
 // Status reports a new app status for display.
 func (a *App) Status(l model.FlashLevel, msg string) {
 	a.QueueUpdateDraw(func() {
+		if a.podOps != nil && a.podOps.visible {
+			a.podOps.setStatus(l, msg)
+			return
+		}
 		if a.showHeader {
 			a.setLogo(l, msg)
 		} else {
@@ -713,6 +717,9 @@ func (a *App) IsBenchmarking() bool {
 func (a *App) ClearStatus(flash bool) {
 	a.QueueUpdate(func() {
 		a.Logo().Reset()
+		if a.podOps != nil && a.podOps.visible {
+			a.podOps.clearStatus()
+		}
 		if flash {
 			a.Flash().Clear()
 		}
