@@ -668,21 +668,10 @@ func (a *App) Run() error {
 				a.podOps.updateTable(pod)
 			}
 			if pod.GetTable().GetRowCount() <= 1 && a.Conn() != nil {
-				// A still-empty cache gets one asynchronous refresh; never block
-				// the terminal event loop on a Kubernetes API request.
-				go func() {
-					if err := pod.GetModel().Refresh(pod.GetContext()); err != nil {
-						a.QueueUpdateDraw(func() {
-							a.Flash().Warnf("Initial pods refresh failed: %s", err)
-						})
-						return
-					}
-					a.QueueUpdateDraw(func() {
-						if a.Content.Top() == pod {
-							pod.Refresh()
-						}
-					})
-				}()
+				// Restart the existing resource watcher now that the app is
+				// running. K9s's first update may have been ignored before
+				// SetRunning(true); Browser.Start manages its own cancellation.
+				pod.Start()
 			}
 		}
 	})
