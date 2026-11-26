@@ -100,6 +100,53 @@ func (o *podOpsDock) focusables() []tview.Primitive {
 	return []tview.Primitive{o.nav, pod, o.details, o.logFocus(), o.events}
 }
 
+// highlightPane explicitly marks the current keyboard destination. The
+// component border focus signal alone is not sufficiently visible in many
+// terminals because composite K9s pages delegate their focus to inner tables.
+func (o *podOpsDock) highlightPane(index int) {
+	if o == nil || o.nav == nil || !o.visible {
+		return
+	}
+	if index < 0 || index > 4 {
+		index = 1
+	}
+	o.activePane = index
+	normal := tcell.NewHexColor(0x23724a)
+	active := tcell.NewHexColor(0x51ec89)
+	// The concrete primitives expose embedded Box setters but their setter
+	// methods return different concrete types, so assign them individually.
+	o.nav.SetBorderColor(normal)
+	o.details.SetBorderColor(normal)
+	o.events.SetBorderColor(normal)
+	o.logTable.SetBorderColor(normal)
+	o.logs.SetBorderColor(normal)
+	if o.source != nil {
+		o.source.GetTable().SetBorderColor(normal)
+	}
+	o.nav.SetTitle(" NAVIGATION [Tab] ")
+	o.details.SetTitle(" POD DOCTOR / SELECTED ")
+	o.events.SetTitle(" POD EVENTS ")
+	switch index {
+	case 0:
+		o.nav.SetBorderColor(active)
+		o.nav.SetTitle(" ▶ NAVIGATION [ACTIVE] ")
+	case 1:
+		if o.source != nil {
+			o.source.GetTable().SetBorderColor(active)
+		}
+	case 2:
+		o.details.SetBorderColor(active)
+		o.details.SetTitle(" ▶ POD DOCTOR [ACTIVE] ")
+	case 3:
+		o.logTable.SetBorderColor(active)
+		o.logs.SetBorderColor(active)
+	case 4:
+		o.events.SetBorderColor(active)
+		o.events.SetTitle(" ▶ POD EVENTS [ACTIVE] ")
+	}
+	o.refreshLogTitle()
+}
+
 // focusNext uses standard Tab/Shift+Tab, including when entering from a
 // mouse-selected panel. No Ctrl combinations are needed.
 func (o *podOpsDock) focusNext(direction int) {
@@ -119,6 +166,7 @@ func (o *podOpsDock) focusNext(direction int) {
 		index = (index + direction + len(items)) % len(items)
 		if items[index] != nil {
 			o.app.SetFocus(items[index])
+			o.highlightPane(index)
 			return
 		}
 	}
