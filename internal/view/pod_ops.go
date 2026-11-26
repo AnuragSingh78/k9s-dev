@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/derailed/k9s/internal/client"
+	"github.com/derailed/k9s/internal/model"
 	"github.com/derailed/tcell/v2"
 	"github.com/derailed/tview"
 	v1 "k8s.io/api/core/v1"
@@ -81,6 +82,8 @@ type podOpsDock struct {
 	searching bool
 	dockWeight int
 	activePane int
+	statusText string
+	statusLevel model.FlashLevel
 	events    *tview.TextView
 	source    *Pod
 	path      string
@@ -194,8 +197,36 @@ func (o *podOpsDock) refreshBanner(namespace string) {
 	if o.app.Conn() != nil {
 		contextName = o.app.Conn().ActiveContext()
 	}
-	o.banner.SetText(fmt.Sprintf(" [#5bf4aa::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#a8eacb::]Context:[-::] %s   [#a8eacb::]Namespace:[-::] %s   [#5bf4aa::]Tab[-::] move   [#5bf4aa::]Enter[-::] beautify log   [#5bf4aa::]Shift+B[-::] full table",
-		tview.Escape(contextName), tview.Escape(namespace)))
+	banner := fmt.Sprintf(" [#5bf4aa::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#a8eacb::]Context:[-::] %s   [#a8eacb::]Namespace:[-::] %s   [#5bf4aa::]Tab[-::] move   [#5bf4aa::]Shift+B[-::] full table",
+		tview.Escape(contextName), tview.Escape(namespace))
+	if o.statusText != "" {
+		tint := "#a8eacb"
+		switch o.statusLevel {
+		case model.FlashWarn:
+			tint = "#ffc56e"
+		case model.FlashErr:
+			tint = "#ff6b73"
+		}
+		// Keep the actionable portion readable on narrow terminal windows.
+		msg := o.statusText
+		if len(msg) > 100 {
+			msg = msg[:100] + "..."
+		}
+		banner += fmt.Sprintf("  [%s::b]%s[-:-:-]", tint, tview.Escape(msg))
+	}
+	o.banner.SetText(banner)
+}
+
+// setStatus ensures pod-watch and Kubernetes errors remain visible. The
+// standard K9s logo is deliberately hidden by the compact Emerald header.
+func (o *podOpsDock) setStatus(level model.FlashLevel, msg string) {
+	o.statusLevel, o.statusText = level, msg
+	o.refreshBanner(o.app.Config.ActiveNamespace())
+}
+
+func (o *podOpsDock) clearStatus() {
+	o.statusText = ""
+	o.refreshBanner(o.app.Config.ActiveNamespace())
 }
 
 // refreshView is called on the terminal event loop when Pods becomes active.
