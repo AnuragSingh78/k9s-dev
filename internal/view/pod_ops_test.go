@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/derailed/k9s/internal/config/mock"
+	"github.com/derailed/tcell/v2"
 )
 
 func TestPodOpsSummaryCountsVisibleRows(t *testing.T) {
@@ -31,3 +33,31 @@ func TestPodOpsEmptyAndReadyValidation(t *testing.T) {
 	}
 }
 
+
+func TestPodOpsTabFocusHighlights(t *testing.T) {
+	app := NewApp(mock.NewMockConfig(t))
+	dock := newPodOpsDock(app)
+	dock.visible = true
+	active := tcell.NewHexColor(0x51ec89)
+	normal := tcell.NewHexColor(0x23724a)
+
+	dock.highlightPane(0)
+	assert.Equal(t, active, dock.nav.GetBorderColor())
+	assert.Equal(t, normal, dock.details.GetBorderColor())
+	assert.Contains(t, dock.nav.GetTitle(), "[ACTIVE]")
+
+	dock.highlightPane(2)
+	assert.Equal(t, active, dock.details.GetBorderColor())
+	assert.Equal(t, normal, dock.nav.GetBorderColor())
+	assert.Contains(t, dock.details.GetTitle(), "[ACTIVE]")
+
+	dock.highlightPane(3)
+	assert.Equal(t, active, dock.logTable.GetBorderColor())
+	assert.Equal(t, active, dock.logs.GetBorderColor())
+	assert.Contains(t, dock.logTable.GetTitle(), "[ACTIVE]")
+
+	dock.highlightPane(4)
+	assert.Equal(t, active, dock.events.GetBorderColor())
+	assert.Equal(t, normal, dock.logTable.GetBorderColor())
+	assert.Contains(t, dock.events.GetTitle(), "[ACTIVE]")
+}
