@@ -80,6 +80,7 @@ type podOpsDock struct {
 	logWrap   bool
 	searching bool
 	dockWeight int
+	activePane int
 	events    *tview.TextView
 	source    *Pod
 	path      string
@@ -92,6 +93,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 	o := &podOpsDock{
 		app: app, logTail: previewDefaultTail,
 		logBytes: previewDefaultBytes, logWrap: true, dockWeight: 6,
+		activePane: 1,
 	}
 	bg := app.Styles.BgColor()
 	o.banner = tview.NewTextView().SetDynamicColors(true)
@@ -204,6 +206,7 @@ func (o *podOpsDock) refreshView(p *Pod) {
 	}
 	o.refreshBanner(o.app.Config.ActiveNamespace())
 	o.updateTable(p)
+	o.highlightPane(o.activePane)
 }
 
 func (o *podOpsDock) updateTable(p *Pod) {
