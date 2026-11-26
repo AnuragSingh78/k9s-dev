@@ -265,6 +265,9 @@ func (o *podOpsDock) refreshLogTitle() {
 	if len(container) > 20 { container = container[:20] + "…" }
 	title := fmt.Sprintf(" LOGS %s | %d/%d | %d lines | %dKB | %s ",
 		mode, len(o.logShown), len(o.logRows), o.logTail, o.logBytes/1024, filter)
+	if o.visible && o.activePane == 3 {
+		title = " ▶ [ACTIVE]" + title
+	}
 	if container != "" { title += container + " " }
 	o.logTable.SetTitle(title)
 	o.logs.SetTitle(title)
