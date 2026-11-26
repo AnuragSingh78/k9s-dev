@@ -657,6 +657,35 @@ func (a *App) Run() error {
 		return err
 	}
 	a.SetRunning(true)
+	// The initial Pod watch can publish its snapshot while the terminal is
+	// still starting. Browser.TableDataChanged deliberately ignores updates
+	// until IsRunning is true, so recover its cached snapshot after startup.
+	// This does not replace the existing resource watcher.
+	a.QueueUpdateDraw(func() {
+		if pod, ok := a.Content.Top().(*Pod); ok {
+			pod.Refresh()
+			if a.podOps != nil && a.podOps.visible {
+				a.podOps.updateTable(pod)
+			}
+			if pod.GetTable().GetRowCount() <= 1 && a.Conn() != nil {
+				// A still-empty cache gets one asynchronous refresh; never block
+				// the terminal event loop on a Kubernetes API request.
+				go func() {
+					if err := pod.GetModel().Refresh(pod.GetContext()); err != nil {
+						a.QueueUpdateDraw(func() {
+							a.Flash().Warnf("Initial pods refresh failed: %s", err)
+						})
+						return
+					}
+					a.QueueUpdateDraw(func() {
+						if a.Content.Top() == pod {
+							pod.Refresh()
+						}
+					})
+				}()
+			}
+		}
+	})
 	if err := a.Application.Run(); err != nil {
 		return err
 	}
