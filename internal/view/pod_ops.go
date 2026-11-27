@@ -103,7 +103,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 	o.banner.SetBackgroundColor(bg)
 
 	o.nav = tview.NewList().ShowSecondaryText(false)
-	o.nav.SetBorder(true).SetTitle(" NAVIGATION [Tab] ")
+	o.nav.SetBorder(true).SetTitle(">_ NAVIGATE [Tab] ")
 	o.nav.SetBackgroundColor(bg)
 	o.nav.SetMainTextColor(app.Styles.FgColor())
 	o.nav.SetSelectedBackgroundColor(tcell.NewHexColor(0x00e65b))
@@ -158,9 +158,9 @@ func newPodOpsDock(app *App) *podOpsDock {
 	o.logs = tview.NewTextView().SetDynamicColors(true)
 	o.events = tview.NewTextView().SetDynamicColors(true)
 	o.initLogExplorer(bg)
-	o.details.SetTitle(" POD DOCTOR / SELECTED ")
+	o.details.SetTitle(">_ POD DOCTOR / SELECTED ")
 	o.logs.SetTitle(" RECENT LOGS [snapshot] ")
-	o.events.SetTitle(" POD EVENTS ")
+	o.events.SetTitle(">_ POD EVENTS ")
 	for _, panel := range []*tview.TextView{o.details, o.logs, o.events} {
 		panel.SetBorder(true)
 		panel.SetBackgroundColor(bg)
@@ -197,7 +197,7 @@ func (o *podOpsDock) refreshBanner(namespace string) {
 	if o.app.Conn() != nil {
 		contextName = o.app.Conn().ActiveContext()
 	}
-	banner := fmt.Sprintf(" [#39ff14::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#baffcc::]Context:[-::] %s   [#baffcc::]Namespace:[-::] %s   [#39ff14::]Tab[-::] move   [#39ff14::]Shift+B[-::] full table",
+	banner := fmt.Sprintf(" [#39ff14::b]▣ K9S // PHOSPHOR OPS[-:-:-]   [#baffcc::]Context:[-::] %s   [#baffcc::]Namespace:[-::] %s   [#39ff14::]Tab[-::] move   [#39ff14::]Shift+B[-::] full table",
 		tview.Escape(contextName), tview.Escape(namespace))
 	if o.statusText != "" {
 		tint := "#baffcc"
