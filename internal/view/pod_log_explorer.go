@@ -105,13 +105,13 @@ func normalizePreviewLevel(v string) string {
 func previewLevelColor(level string) string {
 	switch level {
 	case "ERROR":
-		return "#ff6b73"
+		return "#ff5b6e"
 	case "WARN":
-		return "#ffc56e"
+		return "#ffca58"
 	case "DEBUG":
-		return "#86a79c"
+		return "#659678"
 	default:
-		return "#67dcbc"
+		return "#6fffa0"
 	}
 }
 
@@ -195,11 +195,11 @@ func renderPrettyLogPreview(entries []podLogEntry) string {
 	}
 	var b strings.Builder
 	for i, entry := range entries {
-		fmt.Fprintf(&b, " [#90ac9d::]%03d  %s[-::]  [%s::b]%s[-::]\n",
+		fmt.Fprintf(&b, " [#71977d::]%03d  %s[-::]  [%s::b]%s[-::]\n",
 			i+1, tview.Escape(entry.timestamp), previewLevelColor(entry.level), tview.Escape(entry.level))
 		if entry.json {
 			for _, line := range strings.Split(entry.pretty, "\n") {
-				fmt.Fprintf(&b, " [#8ce2c0::]%s[-::]\n", tview.Escape(line))
+				fmt.Fprintf(&b, " [#8affb7::]%s[-::]\n", tview.Escape(line))
 			}
 		} else {
 			fmt.Fprintf(&b, " %s\n", tview.Escape(entry.message))
@@ -211,15 +211,15 @@ func renderPrettyLogPreview(entries []podLogEntry) string {
 
 func renderSingleLogDetail(entry podLogEntry) string {
 	var b strings.Builder
-	fmt.Fprintf(&b, "[#5bf4aa::b]LOG ENTRY / BEAUTIFIED[-:-:-]\n\n")
-	fmt.Fprintf(&b, "[#90ac9d::]TIME[-::]  %s\n", tview.Escape(entry.timestamp))
-	fmt.Fprintf(&b, "[#90ac9d::]LEVEL[-::] [%s::b]%s[-::]\n\n", previewLevelColor(entry.level), entry.level)
-	b.WriteString("[#5bf4aa::b]MESSAGE / STRUCTURED DATA[-:-:-]\n")
+	fmt.Fprintf(&b, "[#39ff14::b]LOG ENTRY / BEAUTIFIED[-:-:-]\n\n")
+	fmt.Fprintf(&b, "[#71977d::]TIME[-::]  %s\n", tview.Escape(entry.timestamp))
+	fmt.Fprintf(&b, "[#71977d::]LEVEL[-::] [%s::b]%s[-::]\n\n", previewLevelColor(entry.level), entry.level)
+	b.WriteString("[#39ff14::b]MESSAGE / STRUCTURED DATA[-:-:-]\n")
 	for _, line := range strings.Split(prettyLogEntry(entry), "\n") {
 		fmt.Fprintf(&b, " %s\n", tview.Escape(line))
 	}
-	b.WriteString("\n[#5bf4aa::b]ORIGINAL RAW LINE[-:-:-]\n")
+	b.WriteString("\n[#39ff14::b]ORIGINAL RAW LINE[-:-:-]\n")
 	fmt.Fprintf(&b, " %s\n", tview.Escape(entry.raw))
-	b.WriteString("\n[#86a79c::]Esc/q: back  |  c: copy visible content[-::]")
+	b.WriteString("\n[#659678::]Esc/q: back  |  c: copy visible content[-::]")
 	return b.String()
 }
