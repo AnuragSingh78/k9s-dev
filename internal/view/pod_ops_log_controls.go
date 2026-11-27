@@ -123,26 +123,26 @@ func (o *podOpsDock) highlightPane(index int) {
 	if o.source != nil {
 		o.source.GetTable().SetBorderColor(normal)
 	}
-	o.nav.SetTitle(" NAVIGATION [Tab] ")
-	o.details.SetTitle(" POD DOCTOR / SELECTED ")
-	o.events.SetTitle(" POD EVENTS ")
+	o.nav.SetTitle(" >_ NAVIGATE [Tab] ")
+	o.details.SetTitle(" >_ POD DOCTOR / SELECTED ")
+	o.events.SetTitle(" >_ POD EVENTS ")
 	switch index {
 	case 0:
 		o.nav.SetBorderColor(active)
-		o.nav.SetTitle(" ▶ NAVIGATION [ACTIVE] ")
+		o.nav.SetTitle(" >_ NAVIGATE [ACTIVE] ")
 	case 1:
 		if o.source != nil {
 			o.source.GetTable().SetBorderColor(active)
 		}
 	case 2:
 		o.details.SetBorderColor(active)
-		o.details.SetTitle(" ▶ POD DOCTOR [ACTIVE] ")
+		o.details.SetTitle(" >_ POD DOCTOR [ACTIVE] ")
 	case 3:
 		o.logTable.SetBorderColor(active)
 		o.logs.SetBorderColor(active)
 	case 4:
 		o.events.SetBorderColor(active)
-		o.events.SetTitle(" ▶ POD EVENTS [ACTIVE] ")
+		o.events.SetTitle(" ▶ >_ POD EVENTS [ACTIVE] ")
 	}
 	o.refreshLogTitle()
 }
@@ -263,7 +263,7 @@ func (o *podOpsDock) refreshLogTitle() {
 	if o.logMode != "" { filter = strings.ToLower(o.logMode) }
 	container := o.logContainer
 	if len(container) > 20 { container = container[:20] + "…" }
-	title := fmt.Sprintf(" LOGS %s | %d/%d | %d lines | %dKB | %s ",
+	title := fmt.Sprintf(" >_ LOGS %s | %d/%d | %d lines | %dKB | %s ",
 		mode, len(o.logShown), len(o.logRows), o.logTail, o.logBytes/1024, filter)
 	if o.visible && o.activePane == 3 {
 		title = " ▶ [ACTIVE]" + title
