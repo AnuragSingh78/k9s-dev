@@ -19,10 +19,10 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		e  string
 	}{
 		"all-containers": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[#6b9180::d]Off[-::]     [::b]Autoscroll:[#51ec89::b]On[-::]      [::b]ColumnLock:[#6b9180::d]Off[-::]     [::b]FullScreen:[#6b9180::d]Off[-::]     [::b]Timestamps:[#6b9180::d]Off[-::]     [::b]Wrap:[#6b9180::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[#5f936b::d]Off[-::]     [::b]Autoscroll:[#39ff14::b]On[-::]      [::b]ColumnLock:[#5f936b::d]Off[-::]     [::b]FullScreen:[#5f936b::d]Off[-::]     [::b]Timestamps:[#5f936b::d]Off[-::]     [::b]Wrap:[#5f936b::d]Off[-::]\n",
 		},
 		"plain": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[#51ec89::b]On[-::]      [::b]ColumnLock:[#6b9180::d]Off[-::]     [::b]FullScreen:[#6b9180::d]Off[-::]     [::b]Timestamps:[#6b9180::d]Off[-::]     [::b]Wrap:[#6b9180::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[#39ff14::b]On[-::]      [::b]ColumnLock:[#5f936b::d]Off[-::]     [::b]FullScreen:[#5f936b::d]Off[-::]     [::b]Timestamps:[#5f936b::d]Off[-::]     [::b]Wrap:[#5f936b::d]Off[-::]\n",
 		},
 	}
 
