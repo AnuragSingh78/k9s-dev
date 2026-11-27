@@ -106,8 +106,8 @@ func newPodOpsDock(app *App) *podOpsDock {
 	o.nav.SetBorder(true).SetTitle(" NAVIGATION [Tab] ")
 	o.nav.SetBackgroundColor(bg)
 	o.nav.SetMainTextColor(app.Styles.FgColor())
-	o.nav.SetSelectedBackgroundColor(tcell.NewHexColor(0x38d58d))
-	o.nav.SetSelectedTextColor(tcell.NewHexColor(0x07140d))
+	o.nav.SetSelectedBackgroundColor(tcell.NewHexColor(0x00e65b))
+	o.nav.SetSelectedTextColor(tcell.NewHexColor(0x020804))
 	entries := []struct{ title, command string }{
 		{"1  Pods", "pods"},
 		{"2  Deployments", "deployments"},
@@ -148,7 +148,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 		card := tview.NewTextView().SetDynamicColors(true)
 		card.SetBorder(true).SetTitle(" " + label + " ")
 		card.SetBackgroundColor(bg)
-		card.SetBorderColor(tcell.NewHexColor(0x23724a))
+		card.SetBorderColor(tcell.NewHexColor(0x155a2d))
 		card.SetTextAlign(tview.AlignCenter)
 		card.SetText("[#5f936b::]—[-::]")
 		o.cards = append(o.cards, card)
@@ -164,7 +164,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 	for _, panel := range []*tview.TextView{o.details, o.logs, o.events} {
 		panel.SetBorder(true)
 		panel.SetBackgroundColor(bg)
-		panel.SetBorderColor(tcell.NewHexColor(0x23724a))
+		panel.SetBorderColor(tcell.NewHexColor(0x155a2d))
 		panel.SetBorderPadding(0, 0, 1, 1)
 		panel.SetScrollable(true).SetWrap(true)
 		panel.SetTextColor(app.Styles.FgColor())
