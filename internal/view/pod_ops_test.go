@@ -39,8 +39,8 @@ func TestPodOpsTabFocusHighlights(t *testing.T) {
 	app := NewApp(mock.NewMockConfig(t))
 	dock := newPodOpsDock(app)
 	dock.visible = true
-	active := tcell.NewHexColor(0x51ec89)
-	normal := tcell.NewHexColor(0x23724a)
+	active := tcell.NewHexColor(0x39ff14)
+	normal := tcell.NewHexColor(0x155a2d)
 
 	dock.highlightPane(0)
 	assert.Equal(t, active, dock.nav.GetBorderColor())
