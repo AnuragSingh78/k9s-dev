@@ -150,7 +150,7 @@ func newPodOpsDock(app *App) *podOpsDock {
 		card.SetBackgroundColor(bg)
 		card.SetBorderColor(tcell.NewHexColor(0x23724a))
 		card.SetTextAlign(tview.AlignCenter)
-		card.SetText("[#6b9180::]—[-::]")
+		card.SetText("[#5f936b::]—[-::]")
 		o.cards = append(o.cards, card)
 		o.kpis.AddItem(card, 0, 1, false)
 	}
@@ -197,15 +197,15 @@ func (o *podOpsDock) refreshBanner(namespace string) {
 	if o.app.Conn() != nil {
 		contextName = o.app.Conn().ActiveContext()
 	}
-	banner := fmt.Sprintf(" [#5bf4aa::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#a8eacb::]Context:[-::] %s   [#a8eacb::]Namespace:[-::] %s   [#5bf4aa::]Tab[-::] move   [#5bf4aa::]Shift+B[-::] full table",
+	banner := fmt.Sprintf(" [#39ff14::b]◆ K9S DEV / EMERALD OPS[-:-:-]   [#baffcc::]Context:[-::] %s   [#baffcc::]Namespace:[-::] %s   [#39ff14::]Tab[-::] move   [#39ff14::]Shift+B[-::] full table",
 		tview.Escape(contextName), tview.Escape(namespace))
 	if o.statusText != "" {
-		tint := "#a8eacb"
+		tint := "#baffcc"
 		switch o.statusLevel {
 		case model.FlashWarn:
-			tint = "#ffc56e"
+			tint = "#ffca58"
 		case model.FlashErr:
-			tint = "#ff6b73"
+			tint = "#ff5b6e"
 		}
 		// Keep the actionable portion readable on narrow terminal windows.
 		msg := o.statusText
@@ -285,7 +285,7 @@ func (o *podOpsDock) updateTable(p *Pod) {
 		o.reset()
 		return
 	}
-	o.details.SetText(" [#5bf4aa::]Inspecting selected pod...[-::]")
+	o.details.SetText(" [#39ff14::]Inspecting selected pod...[-::]")
 	o.setLogStatus(" Loading bounded log snapshot...")
 	o.events.SetText(" Loading pod events...")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -295,11 +295,11 @@ func (o *podOpsDock) updateTable(p *Pod) {
 
 func (o *podOpsDock) showCounts(c podCounts) {
 	vals := []struct{ n int; color string }{
-		{c.total, "#e5fff1"},
-		{c.ready, "#51ec89"},
-		{c.issues, "#ffb96d"},
-		{c.completed, "#90ac9d"},
-		{c.restarts, "#ffc56e"},
+		{c.total, "#d9ffe2"},
+		{c.ready, "#39ff14"},
+		{c.issues, "#ffca58"},
+		{c.completed, "#71977d"},
+		{c.restarts, "#ffca58"},
 	}
 	for i, v := range vals {
 		o.cards[i].SetText(fmt.Sprintf("[%s::b]%d[-::]", v.color, v.n))
@@ -359,7 +359,7 @@ func (o *podOpsDock) loadSnapshot(ctx context.Context, path string, tailCount, b
 	})
 	diagnosis := renderPodDiagnosis(pod, events)
 	if eventErr != nil {
-		diagnosis += "\n [#ffc56e::]Event access unavailable; some findings may be missing.[-::]"
+		diagnosis += "\n [#ffca58::]Event access unavailable; some findings may be missing.[-::]"
 	}
 	eventText := renderPodEvents(events, eventErr)
 	logRows, logContainer, logErr := fetchPodLogEntries(ctxReq, dial, pod, tailCount, byteLimit)
@@ -387,7 +387,7 @@ func (o *podOpsDock) showError(ctx context.Context, detail string) {
 		if ctx.Err() != nil || !o.visible {
 			return
 		}
-		o.details.SetText("[#ff6b73::b]Unable to inspect pod[-:-:-]\n"+tview.Escape(detail))
+		o.details.SetText("[#ff5b6e::b]Unable to inspect pod[-:-:-]\n"+tview.Escape(detail))
 		o.setLogStatus("Pod log snapshot unavailable")
 		o.events.SetText("Pod events unavailable")
 	})
