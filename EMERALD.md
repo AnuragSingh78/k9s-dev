@@ -64,11 +64,31 @@ provided scheme object. Merge it into the existing `schemes` array so your
 existing profiles, fonts and keybindings are preserved. Apply the color scheme
 only to the profile used for K9s if you want other terminals unaffected.
 
-The terminal color scheme and font can be changed **without replacing your
-currently working EXE**. The new embedded stock skin colors take effect only
-when running a newly built executable, or by selecting an equivalent custom
-skin. No workload logic, key bindings, pod watcher, log retrieval or RBAC
-behavior changes are intended as part of this visual update.
+### Apply the new colors to your EXISTING working executable
+
+You do **not** need to replace `k9s-dev.exe` to use the new palette:
+
+1. Download [skins/hacker-phosphor.yaml](skins/hacker-phosphor.yaml)
+   (choose **Raw** or download the file in GitHub).
+2. Run `.\\k9s-dev.exe info` in PowerShell and note its **Skins** directory.
+   This discovers the correct path even if Windows/WSL configuration varies.
+3. Put the downloaded file in that directory, named `hacker-phosphor.yaml`.
+4. In the same PowerShell session, launch your existing working binary with:
+
+   ```powershell
+   $env:K9S_SKIN = "hacker-phosphor"
+   .\\k9s-dev.exe
+   ```
+
+To revert to your normal skin for the next launch, run
+`Remove-Item Env:K9S_SKIN`. If your saved context config selects a different
+skin, `K9S_SKIN` overrides it for the session without editing configuration.
+The Windows Terminal color scheme and font are independently configurable
+and never require rebuilding K9s.
+
+The new **embedded default** colors in the feature branch also work after a
+newly built EXE is installed; that is optional. Existing watchers, Kubernetes
+requests, keybindings, pod logs and RBAC remain unchanged by this style work.
 
 ## New navigation
 
