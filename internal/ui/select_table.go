@@ -15,6 +15,7 @@ type SelectTable struct {
 
 	model      Tabular
 	selectedFn func(string) string
+	selectionObserver func(int, int)
 	marks      sets.Set[string]
 	selFgColor tcell.Color
 	selBgColor tcell.Color
@@ -87,6 +88,20 @@ func (s *SelectTable) GetSelectedCell(col int) string {
 	return TrimCell(s, r, col)
 }
 
+// SetSelectionObserver registers an additional, optional selection listener.
+// The built-in selection styling callback remains installed.
+func (s *SelectTable) SetSelectionObserver(fn func(int, int)) {
+	s.selectionObserver = fn
+}
+
+// NotifySelectionObserver reports the current selection after table refresh.
+func (s *SelectTable) NotifySelectionObserver() {
+	if s.selectionObserver != nil {
+		row, col := s.GetSelection()
+		s.selectionObserver(row, col)
+	}
+}
+
 // SetSelectedFn defines a function that cleanse the current selection.
 func (s *SelectTable) SetSelectedFn(f func(string) string) {
 	s.selectedFn = f
@@ -125,6 +140,7 @@ func (s *SelectTable) selectionChanged(r, c int) {
 			tcell.StyleDefault.Foreground(s.selFgColor).
 				Background(cell.Color).Attributes(tcell.AttrBold))
 	}
+	s.NotifySelectionObserver()
 }
 
 // ClearMarks delete all marked items.

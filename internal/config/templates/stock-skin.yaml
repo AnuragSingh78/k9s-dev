@@ -1,119 +1,121 @@
 # -----------------------------------------------------------------------------
-# Stock skin
+# HACKER // PHOSPHOR — bundled black-and-neon-green terminal theme
 # -----------------------------------------------------------------------------
 
-# Skin...
+# Retro terminal hacker palette: high-contrast phosphor green on near-black.
+# Amber warnings and red errors stay distinct for operational safety.
+# Appearance only; Kubernetes permissions, workflows and controls are untouched.
 k9s:
   body:
-    fgColor: cadetblue
-    bgColor: black
-    logoColor: orange
-    logoColorMsg: white
-    logoColorInfo: green
-    logoColorWarn: mediumvioletred
-    logoColorError: red
+    fgColor: "#baffcc"
+    bgColor: "#020804"
+    logoColor: "#00ff66"
+    logoColorMsg: "#d9ffe2"
+    logoColorInfo: "#00d951"
+    logoColorWarn: "#ffca58"
+    logoColorError: "#ff5b6e"
   prompt:
-    fgColor: cadetblue
-    bgColor: black
-    suggestColor: dodgerblue
+    fgColor: "#baffcc"
+    bgColor: "#020804"
+    suggestColor: "#00e65b"
     border:
-      command: aqua
-      default: seagreen
+      command: "#39ff14"
+      default: "#155a2d"
   help:
-    fgColor: cadetblue
-    bgColor: black
-    sectionColor: green
-    keyColor: dodgerblue
-    numKeyColor: fuchsia
+    fgColor: "#baffcc"
+    bgColor: "#020804"
+    sectionColor: "#00d951"
+    keyColor: "#00e65b"
+    numKeyColor: "#a3ff12"
   frame:
     title:
-      fgColor: aqua
-      bgColor: black
-      highlightColor: fuchsia
-      counterColor: papayawhip
-      filterColor: seagreen
+      fgColor: "#39ff14"
+      bgColor: "#020804"
+      highlightColor: "#a3ff12"
+      counterColor: "#b0eabb"
+      filterColor: "#155a2d"
     border:
-      fgColor: dodgerblue
-      focusColor: lightskyblue
+      fgColor: "#00e65b"
+      focusColor: "#80ff9d"
     menu:
-      fgColor: white
-      keyColor: dodgerblue
-      numKeyColor: fuchsia
+      fgColor: "#d9ffe2"
+      keyColor: "#00e65b"
+      numKeyColor: "#a3ff12"
     crumbs:
-      fgColor: black
-      bgColor: aqua
-      activeColor: orange
+      fgColor: "#020804"
+      bgColor: "#39ff14"
+      activeColor: "#00ff66"
     status:
-      newColor: lightskyblue
-      modifyColor: greenyellow
-      addColor: dodgerblue
-      pendingColor: darkorange
-      errorColor: orangered
-      highlightColor: aqua
-      killColor: mediumpurple
-      completedColor: lightslategray
+      newColor: "#80ff9d"
+      modifyColor: "#65ff66"
+      addColor: "#00e65b"
+      pendingColor: "#ffca58"
+      errorColor: "#ff5b6e"
+      highlightColor: "#39ff14"
+      killColor: "#ff7f83"
+      completedColor: "#698a71"
   info:
-    sectionColor: white
-    fgColor: orange
+    sectionColor: "#d9ffe2"
+    fgColor: "#00ff66"
   views:
     table:
-      fgColor: aqua
-      bgColor: black
-      cursorFgColor: black
-      cursorBgColor: aqua
-      markColor: palegreen
+      fgColor: "#39ff14"
+      bgColor: "#020804"
+      cursorFgColor: "#020804"
+      cursorBgColor: "#39ff14"
+      markColor: "#39ee65"
       header:
-        fgColor: white
-        bgColor: black
-        sorterColor: aqua
-        selectedSortColumnColor: lightskyblue
+        fgColor: "#d9ffe2"
+        bgColor: "#020804"
+        sorterColor: "#39ff14"
+        selectedSortColumnColor: "#80ff9d"
     xray:
-      fgColor: aqua
-      bgColor: black
-      cursorColor: dodgerblue
-      cursorTextColor: black
-      graphicColor: cadetblue
+      fgColor: "#39ff14"
+      bgColor: "#020804"
+      cursorColor: "#00e65b"
+      cursorTextColor: "#020804"
+      graphicColor: "#baffcc"
     charts:
-      bgColor: black
-      dialBgColor: black
-      chartBgColor: black
-      focusFgColor: white
-      focusBgColor: orange
+      bgColor: "#020804"
+      dialBgColor: "#020804"
+      chartBgColor: "#020804"
+      focusFgColor: "#d9ffe2"
+      focusBgColor: "#00ff66"
       defaultDialColors:
-      - palegreen
-      - orangered
+      - "#39ee65"
+      - "#ff5b6e"
       defaultChartColors:
-      - palegreen
-      - orangered
+      - "#39ee65"
+      - "#ff5b6e"
       resourceColors:
         cpu:
-        - dodgerblue
-        - darkslateblue
+        - "#00e65b"
+        - "#0b3018"
         mem:
-        - yellow
-        - goldenrod
+        - "#d9ff6e"
+        - "#889d36"
     yaml:
-      keyColor: steelblue
-      valueColor: papayawhip
-      colonColor: white
+      keyColor: "#79ffa2"
+      valueColor: "#b0eabb"
+      colonColor: "#d9ffe2"
     picker:
-      mainColor: white
-      focusColor: aqua
-      shortcutColor: aqua
+      mainColor: "#d9ffe2"
+      focusColor: "#39ff14"
+      shortcutColor: "#39ff14"
     logs:
-      fgColor: lightskyblue
-      bgColor: black
+      fgColor: "#80ff9d"
+      bgColor: "#020804"
       indicator:
-        fgColor: dodgerblue
-        bgColor: black
-        toggleOnColor: limegreen
-        toggleOffColor: gray
+        fgColor: "#00e65b"
+        bgColor: "#020804"
+        toggleOnColor: "#39ff14"
+        toggleOffColor: "#5f936b"
   dialog:
-    fgColor: cadetblue
-    bgColor: black
-    buttonFgColor: black
-    buttonBgColor: darkslateblue
-    buttonFocusFgColor: black
-    buttonFocusBgColor: dodgerblue
-    labelFgColor: white
-    fieldFgColor: white
+    fgColor: "#baffcc"
+    bgColor: "#020804"
+    buttonFgColor: "#020804"
+    buttonBgColor: "#0b3018"
+    buttonFocusFgColor: "#020804"
+    buttonFocusBgColor: "#00e65b"
+    labelFgColor: "#d9ffe2"
+    fieldFgColor: "#d9ffe2"

@@ -34,6 +34,7 @@
           "additionalProperties": false,
           "properties": {
             "enableMouse": {"type": "boolean"},
+            "emeraldMouse": {"type": "boolean"},
             "headless": {"type": "boolean"},
             "logoless": {"type": "boolean"},
             "crumbsless": {"type": "boolean"},

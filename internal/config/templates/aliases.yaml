@@ -1,3 +1,5 @@
+# Fast resource commands. Type :<alias> in the K9s command prompt.
+# These map only to native K9s/Kubernetes resource views.
 aliases:
   dp: deployments
   sec: v1/secrets
@@ -7,3 +9,20 @@ aliases:
   ro: roles
   rb: rolebindings
   np: networkpolicies
+  po: pods
+  svc: services
+  ing: ingresses
+  ns: namespaces
+  no: nodes
+  ev: events
+  cm: configmaps
+  sts: statefulsets
+  ds: daemonsets
+  cj: cronjobs
+  sa: serviceaccounts
+  pv: persistentvolumes
+  pvc: persistentvolumeclaims
+  hpa: horizontalpodautoscalers
+  pdb: poddisruptionbudgets
+  ep: endpoints
+  crd: customresourcedefinitions

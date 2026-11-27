@@ -1,0 +1,23 @@
+{
+  "name": "K9s Hacker Phosphor",
+  "background": "#020804",
+  "foreground": "#BAFFCC",
+  "selectionBackground": "#155A2D",
+  "cursorColor": "#39FF14",
+  "black": "#020804",
+  "red": "#FF5B6E",
+  "green": "#00E65B",
+  "yellow": "#FFCA58",
+  "blue": "#4CA875",
+  "purple": "#8FB488",
+  "cyan": "#79FFA2",
+  "white": "#D9FFE2",
+  "brightBlack": "#5F936B",
+  "brightRed": "#FF7F83",
+  "brightGreen": "#39FF14",
+  "brightYellow": "#D9FF6E",
+  "brightBlue": "#80FF9D",
+  "brightPurple": "#B0EABB",
+  "brightCyan": "#8AFFB7",
+  "brightWhite": "#F1FFF4"
+}

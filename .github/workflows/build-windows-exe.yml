@@ -1,0 +1,78 @@
+name: K9s Dev - Windows executable
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feature/emerald-ui-windows
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: k9s-dev-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-exe:
+    name: Build Windows x64 EXE
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Go required by go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run command, configuration, and TUI regression tests
+        run: go test ./cmd ./internal/config ./internal/view
+
+      - name: Cross-compile standalone Windows EXE
+        env:
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: |
+          mkdir -p dist
+          go build -trimpath -ldflags="-s -w -X github.com/derailed/k9s/cmd.version=dev-emerald" -o dist/k9s-dev.exe .
+          test -s dist/k9s-dev.exe
+
+      - name: Upload downloadable EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: k9s-dev-windows-amd64
+          path: dist/k9s-dev.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-smoke:
+    name: Smoke test executable on Windows
+    needs: windows-exe
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download built EXE
+        uses: actions/download-artifact@v4
+        with:
+          name: k9s-dev-windows-amd64
+          path: smoke
+
+      - name: Verify EXE can launch without Kubernetes credentials
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path '.\\smoke\\k9s-dev.exe')) {
+            throw 'Windows executable artifact is missing'
+          }
+          & .\\smoke\\k9s-dev.exe --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'k9s-dev.exe --help failed on Windows' }
+          & .\\smoke\\k9s-dev.exe doctor --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'k9s-dev.exe doctor --help failed on Windows' }

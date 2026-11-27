@@ -36,6 +36,7 @@ func (p *PageStack) Init(ctx context.Context) (err error) {
 
 // StackPushed notifies a new page was added.
 func (p *PageStack) StackPushed(c model.Component) {
+	p.app.syncPodCockpit(c)
 	c.Start()
 	p.app.SetFocus(c)
 }
@@ -51,6 +52,18 @@ func (p *PageStack) StackTop(top model.Component) {
 	if top == nil {
 		return
 	}
+	p.app.syncPodCockpit(top)
 	top.Start()
 	p.app.SetFocus(top)
+	// Returning from beautified log details should restore the operator's
+	// highlighted cockpit pane, rather than silently jumping to the table.
+	if _, isPod := top.(*Pod); isPod && p.app.podOps != nil && p.app.podOps.visible {
+		if index := p.app.podOps.activePane; index != 1 {
+			items := p.app.podOps.focusables()
+			if index >= 0 && index < len(items) && items[index] != nil {
+				p.app.SetFocus(items[index])
+			}
+		}
+		p.app.podOps.highlightPane(p.app.podOps.activePane)
+	}
 }

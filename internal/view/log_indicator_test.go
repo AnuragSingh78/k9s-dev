@@ -4,6 +4,7 @@
 package view_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/derailed/k9s/internal/config"
@@ -18,10 +19,10 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		e  string
 	}{
 		"all-containers": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[gray::d]Off[-::]     [::b]Autoscroll:[limegreen::b]On[-::]      [::b]ColumnLock:[gray::d]Off[-::]     [::b]FullScreen:[gray::d]Off[-::]     [::b]Timestamps:[gray::d]Off[-::]     [::b]Wrap:[gray::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, true), "[::b]AllContainers:[#5f936b::d]Off[-::]     [::b]Autoscroll:[#39ff14::b]On[-::]      [::b]ColumnLock:[#5f936b::d]Off[-::]     [::b]FullScreen:[#5f936b::d]Off[-::]     [::b]Timestamps:[#5f936b::d]Off[-::]     [::b]Wrap:[#5f936b::d]Off[-::]\n",
 		},
 		"plain": {
-			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[limegreen::b]On[-::]      [::b]ColumnLock:[gray::d]Off[-::]     [::b]FullScreen:[gray::d]Off[-::]     [::b]Timestamps:[gray::d]Off[-::]     [::b]Wrap:[gray::d]Off[-::]\n",
+			view.NewLogIndicator(config.NewConfig(nil), defaults, false), "[::b]Autoscroll:[#39ff14::b]On[-::]      [::b]ColumnLock:[#5f936b::d]Off[-::]     [::b]FullScreen:[#5f936b::d]Off[-::]     [::b]Timestamps:[#5f936b::d]Off[-::]     [::b]Wrap:[#5f936b::d]Off[-::]\n",
 		},
 	}
 
@@ -29,7 +30,8 @@ func TestLogIndicatorRefresh(t *testing.T) {
 		u := uu[k]
 		t.Run(k, func(t *testing.T) {
 			u.li.Refresh()
-			assert.Equal(t, u.e, u.li.GetText(false))
+			expected := strings.TrimSuffix(u.e, "\n") + "\n [::b]Explorer[-::] ALL      [::b]JSON[-::] Off      [::d]E errors | W warnings | N reset | J pretty JSON[-::]\n"
+			assert.Equal(t, expected, u.li.GetText(false))
 		})
 	}
 }
@@ -43,4 +45,16 @@ func BenchmarkLogIndicatorRefresh(b *testing.B) {
 	for range b.N {
 		v.Refresh()
 	}
+}
+
+func TestLogIndicatorExplorerModes(t *testing.T) {
+	l := view.NewLogIndicator(config.NewConfig(nil), config.NewStyles(), false)
+	l.SetExplorerMode("ERROR")
+	l.SetPrettyJSON(true)
+	assert.Contains(t, l.GetText(false), "Explorer[-::] ERROR")
+	assert.Contains(t, l.GetText(false), "JSON[-::] On")
+	l.SetExplorerMode("")
+	l.SetPrettyJSON(false)
+	assert.Contains(t, l.GetText(false), "Explorer[-::] ALL")
+	assert.Contains(t, l.GetText(false), "JSON[-::] Off")
 }

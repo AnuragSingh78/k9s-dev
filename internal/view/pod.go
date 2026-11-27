@@ -62,6 +62,11 @@ func NewPod(gvr *client.GVR) ResourceViewer {
 	p.AddBindKeysFn(p.bindKeys)
 	p.GetTable().SetEnterFn(p.showContainers)
 	p.GetTable().SetDecorateFn(p.portForwardIndicator)
+	p.GetTable().SetSelectionObserver(func(_, _ int) {
+		if app := p.App(); app != nil && app.podOps != nil {
+			app.podOps.updateTable(&p)
+		}
+	})
 
 	return &p
 }
@@ -129,8 +134,38 @@ func (p *Pod) bindKeys(aa *ui.KeyActions) {
 	}
 
 	aa.Bulk(ui.KeyMap{
-		ui.KeyO: ui.NewKeyAction("Show Node", p.showNode, true),
+		ui.KeyO:      ui.NewKeyAction("Show Node", p.showNode, true),
+		ui.KeyShiftV: ui.NewKeyAction("Pod Workspace", p.workspaceCmd(false), true),
+		ui.KeyShiftD: ui.NewKeyAction("Pod Doctor", p.workspaceCmd(true), true),
+		ui.KeyShiftB: ui.NewKeyAction("Toggle Full Table", p.toggleCockpitCmd, true),
 	})
+}
+
+// toggleCockpitCmd offers the original full-height K9s table at any time.
+func (p *Pod) toggleCockpitCmd(evt *tcell.EventKey) *tcell.EventKey {
+	app := p.App()
+	if app == nil || app.podOps == nil {
+		return evt
+	}
+	app.podOps.collapsed = !app.podOps.collapsed
+	app.syncPodCockpit(p)
+	app.SetFocus(p)
+	return nil
+}
+
+// workspaceCmd opens the read-only, split-panel diagnostics workspace for the
+// selected pod without changing the existing Enter, describe or log actions.
+func (p *Pod) workspaceCmd(doctorFirst bool) func(*tcell.EventKey) *tcell.EventKey {
+	return func(evt *tcell.EventKey) *tcell.EventKey {
+		path := p.GetTable().GetSelectedItem()
+		if path == "" {
+			return evt
+		}
+		if err := p.App().inject(NewPodWorkspace(path, doctorFirst), false); err != nil {
+			p.App().Flash().Err(err)
+		}
+		return nil
+	}
 }
 
 func (p *Pod) logOptions(prev bool) (*dao.LogOptions, error) {

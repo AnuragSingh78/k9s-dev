@@ -88,6 +88,7 @@ type Pulse struct {
 	cancelFn       context.CancelFunc
 	actions        *ui.KeyActions
 	charts         Charts
+	healthPoints   map[string]model.HealthPoint
 	prevFocusIndex int
 	chartGVRs      client.GVRs
 }
@@ -113,8 +114,8 @@ func (p *Pulse) Init(ctx context.Context) error {
 	}
 
 	ns := p.app.Config.ActiveNamespace()
-	frame := p.app.Styles.Frame()
-	p.SetTitle(ui.SkinTitle(fmt.Sprintf(NSTitleFmt, pulseTitle, ns), &frame))
+	p.healthPoints = make(map[string]model.HealthPoint, len(model.PulseGVRs))
+	p.refreshCockpitTitle()
 
 	index, chartRow := 4, 6
 	if client.IsAllNamespace(ns) {
@@ -174,6 +175,7 @@ func (p *Pulse) StylesChanged(s *config.Styles) {
 			c.SetSeriesColors(ss.Colors()...)
 		}
 	}
+	p.refreshCockpitTitle()
 }
 
 // SeriesChanged update cluster time series.
@@ -263,6 +265,35 @@ func (p *Pulse) PulseChanged(pt model.HealthPoint) {
 		v.SetBorderColor(tcell.ColorDarkOliveGreen)
 	}
 	v.Add(pt.Total, pt.Faults)
+	p.healthPoints[pt.GVR.String()] = pt
+	p.refreshCockpitTitle()
+}
+
+// refreshCockpitTitle uses the existing Pulse gauges and API samples; no extra
+// Kubernetes requests or permissions are required.
+func (p *Pulse) refreshCockpitTitle() {
+	if p.app == nil {
+		return
+	}
+	s := summarizePulse(p.healthPoints, p.chartGVRs)
+	title := fmt.Sprintf("Health Cockpit | %s | OK %d | Issues %d | %d/%d checks",
+		s.label(), s.healthy, s.faults, s.seen, s.total)
+	frame := p.app.Styles.Frame()
+	p.SetTitle(ui.SkinTitle(fmt.Sprintf(NSTitleFmt, title, p.app.Config.ActiveNamespace()), &frame))
+}
+
+// openIssuesCmd drills into the resource category with the most unhealthy
+// objects in the current snapshot. It remains read-only.
+func (p *Pulse) openIssuesCmd(*tcell.EventKey) *tcell.EventKey {
+	s := summarizePulse(p.healthPoints, p.chartGVRs)
+	if s.worst == nil {
+		p.app.Flash().Info("No unhealthy resources in the current Pulse sample")
+		return nil
+	}
+	p.Stop()
+	p.app.SetFocus(p.app.Main)
+	p.app.gotoResource(s.worst.R()+" "+p.model.GetNamespace(), "", false, true)
+	return nil
 }
 
 // PulseFailed notifies the load failed.
@@ -273,6 +304,7 @@ func (p *Pulse) PulseFailed(err error) {
 func (p *Pulse) bindKeys() {
 	p.actions.Merge(ui.NewKeyActionsFromMap(ui.KeyMap{
 		tcell.KeyEnter:   ui.NewKeyAction("Goto", p.enterCmd, true),
+		ui.KeyE:          ui.NewKeyAction("Inspect Issues", p.openIssuesCmd, true),
 		tcell.KeyTab:     ui.NewKeyAction("Next", p.nextFocusCmd(dirLeft), true),
 		tcell.KeyBacktab: ui.NewKeyAction("Prev", p.nextFocusCmd(dirRight), true),
 		tcell.KeyDown:    ui.NewKeyAction("Down", p.nextFocusCmd(dirDown), false),

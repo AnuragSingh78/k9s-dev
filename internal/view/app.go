@@ -56,6 +56,9 @@ type App struct {
 	showHeader    bool
 	showLogo      bool
 	showCrumbs    bool
+	cockpitArea   *tview.Flex
+	cockpitRight  *tview.Flex
+	podOps        *podOpsDock
 }
 
 // NewApp returns a K9s app instance.
@@ -103,6 +106,10 @@ func (a *App) Init(version string, _ int) error {
 	a.Content.AddListener(a.Menu())
 
 	a.App.Init()
+	// Emerald is designed for both keyboard and mouse. The stock K9s
+	// enableMouse=false default otherwise prevents single-click log inspection.
+	// An explicit k9s.ui.emeraldMouse=false restores keyboard-only behavior.
+	a.Application.EnableMouse(a.Config.K9s.UI.EmeraldMouseEnabled())
 	a.SetInputCapture(a.keyboard)
 	a.bindKeys()
 
@@ -167,9 +174,16 @@ func (a *App) layout(ctx context.Context) {
 	flash := ui.NewFlash(a.App)
 	go flash.Watch(ctx, a.Flash().Channel())
 
+	// Keep the native K9s Pages alive; only change the surrounding layout.
+	a.podOps = newPodOpsDock(a)
+	a.cockpitRight = tview.NewFlex().SetDirection(tview.FlexRow)
+	a.cockpitRight.AddItem(a.Content, 0, 1, true)
+	a.cockpitArea = tview.NewFlex().SetDirection(tview.FlexColumn)
+	a.cockpitArea.AddItem(a.cockpitRight, 0, 1, true)
+
 	main := tview.NewFlex().SetDirection(tview.FlexRow)
 	main.AddItem(a.statusIndicator(), 1, 1, false)
-	main.AddItem(a.Content, 0, 10, true)
+	main.AddItem(a.cockpitArea, 0, 10, true)
 	if !a.Config.K9s.IsCrumbsless() {
 		main.AddItem(a.Crumbs(), 1, 1, false)
 	}
@@ -244,6 +258,29 @@ func (a *App) contextNames() ([]string, error) {
 }
 
 func (a *App) keyboard(evt *tcell.EventKey) *tcell.EventKey {
+	// The Emerald cockpit is a real multi-pane keyboard workspace. Handle
+	// navigation before K9s global actions (notably '-' and Enter) while the
+	// Pods page is active, without changing other resource viewers.
+	if a.podOps != nil && a.podOps.visible && !a.InCmdMode() {
+		if _, isPod := a.Content.Top().(*Pod); isPod {
+			if a.podOps.searching {
+				return evt // Let the log search field receive typed input.
+			}
+			switch evt.Key() {
+			case tcell.KeyTab:
+				direction := 1
+				if evt.Modifiers()&tcell.ModShift != 0 { direction = -1 }
+				a.podOps.focusNext(direction)
+				return nil
+			case tcell.KeyBacktab:
+				a.podOps.focusNext(-1)
+				return nil
+			}
+			if a.podOps.handleLogKey(evt) {
+				return nil
+			}
+		}
+	}
 	if k, ok := a.HasAction(ui.AsKey(evt)); ok && !a.Content.IsTopDialog() {
 		return k.Action(evt)
 	}
@@ -265,6 +302,55 @@ func (a *App) bindKeys() {
 	}))
 }
 
+// syncPodCockpit changes the actual Pods screen layout. Other K9s resource
+// viewers retain their existing full-height layout and all actions.
+func (a *App) syncPodCockpit(top model.Component) {
+	if a.podOps == nil || a.cockpitArea == nil || a.cockpitRight == nil {
+		return
+	}
+	pod, isPod := top.(*Pod)
+	show := isPod && !a.podOps.collapsed
+	if a.podOps.visible == show && (!show || a.podOps.source == pod) {
+		return
+	}
+	if a.podOps.source != pod || !show {
+		a.podOps.stop()
+	}
+	a.podOps.visible = show
+	right, area := a.cockpitRight, a.cockpitArea
+	right.RemoveItem(a.Content)
+	right.RemoveItem(a.podOps.kpis)
+	right.RemoveItem(a.podOps.dock)
+	area.RemoveItem(right)
+	area.RemoveItem(a.podOps.nav)
+	if show {
+		area.AddItem(a.podOps.nav, 22, 0, false)
+		right.AddItem(a.podOps.kpis, 3, 0, false)
+		right.AddItem(a.Content, 0, 7, true)
+		right.AddItem(a.podOps.dock, 0, 6, false)
+	} else {
+		right.AddItem(a.Content, 0, 1, true)
+	}
+	area.AddItem(right, 0, 1, true)
+	if a.Main.GetPrimitive("main") != nil {
+		a.toggleHeader(a.showHeader, a.showLogo)
+	}
+	if show {
+		a.podOps.refreshView(pod)
+	}
+}
+
+func (a *App) focusCockpitNavCmd(evt *tcell.EventKey) *tcell.EventKey {
+	if a.InCmdMode() {
+		return evt
+	}
+	if a.podOps == nil || !a.podOps.visible {
+		return evt
+	}
+	a.SetFocus(a.podOps.nav)
+	return nil
+}
+
 // ActiveView returns the currently active view.
 func (a *App) ActiveView() model.Component {
 	return a.Content.GetPrimitive("main").(model.Component)
@@ -279,7 +365,12 @@ func (a *App) toggleHeader(header, logo bool) {
 	}
 	if a.showHeader {
 		flex.RemoveItemAtIndex(0)
-		flex.AddItemAtIndex(0, a.buildHeader(), ui.LogoArtHeight+1, 1, false)
+		if a.podOps != nil && a.podOps.visible {
+			// Replace the large ASCII logo/menu with a useful compact command line.
+			flex.AddItemAtIndex(0, a.podOps.banner, 1, 1, false)
+		} else {
+			flex.AddItemAtIndex(0, a.buildHeader(), ui.LogoArtHeight+1, 1, false)
+		}
 	} else {
 		flex.RemoveItemAtIndex(0)
 		flex.AddItemAtIndex(0, a.statusIndicator(), 1, 1, false)
@@ -566,6 +657,24 @@ func (a *App) Run() error {
 		return err
 	}
 	a.SetRunning(true)
+	// The initial Pod watch can publish its snapshot while the terminal is
+	// still starting. Browser.TableDataChanged deliberately ignores updates
+	// until IsRunning is true, so recover its cached snapshot after startup.
+	// This does not replace the existing resource watcher.
+	a.QueueUpdateDraw(func() {
+		if pod, ok := a.Content.Top().(*Pod); ok {
+			pod.Refresh()
+			if a.podOps != nil && a.podOps.visible {
+				a.podOps.updateTable(pod)
+			}
+			if pod.GetTable().GetRowCount() <= 1 && a.Conn() != nil {
+				// Restart the existing resource watcher now that the app is
+				// running. K9s's first update may have been ignored before
+				// SetRunning(true); Browser.Start manages its own cancellation.
+				pod.Start()
+			}
+		}
+	})
 	if err := a.Application.Run(); err != nil {
 		return err
 	}
@@ -576,6 +685,10 @@ func (a *App) Run() error {
 // Status reports a new app status for display.
 func (a *App) Status(l model.FlashLevel, msg string) {
 	a.QueueUpdateDraw(func() {
+		if a.podOps != nil && a.podOps.visible {
+			a.podOps.setStatus(l, msg)
+			return
+		}
 		if a.showHeader {
 			a.setLogo(l, msg)
 		} else {
@@ -593,6 +706,9 @@ func (a *App) IsBenchmarking() bool {
 func (a *App) ClearStatus(flash bool) {
 	a.QueueUpdate(func() {
 		a.Logo().Reset()
+		if a.podOps != nil && a.podOps.visible {
+			a.podOps.clearStatus()
+		}
 		if flash {
 			a.Flash().Clear()
 		}

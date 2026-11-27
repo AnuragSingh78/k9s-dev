@@ -26,6 +26,8 @@ type LogIndicator struct {
 	allContainers              bool
 	shouldDisplayAllContainers bool
 	columnLock                 bool
+	explorerMode               string
+	prettyJSON                 bool
 }
 
 // NewLogIndicator returns a new indicator.
@@ -129,6 +131,18 @@ func (l *LogIndicator) reset() {
 	l.indicator = l.indicator[:0]
 }
 
+// SetExplorerMode displays the active severity shortcut.
+func (l *LogIndicator) SetExplorerMode(mode string) {
+	l.explorerMode = mode
+	l.Refresh()
+}
+
+// SetPrettyJSON indicates that complete JSON log lines are expanded.
+func (l *LogIndicator) SetPrettyJSON(enabled bool) {
+	l.prettyJSON = enabled
+	l.Refresh()
+}
+
 // Refresh updates the view.
 func (l *LogIndicator) Refresh() {
 	l.reset()
@@ -176,6 +190,19 @@ func (l *LogIndicator) Refresh() {
 	} else {
 		l.indicator = append(l.indicator, fmt.Sprintf(toggleOffFmt, "Wrap", "")...)
 	}
+
+	mode := "ALL"
+	if l.explorerMode != "" {
+		mode = l.explorerMode
+	}
+	jsonMode := "Off"
+	if l.prettyJSON {
+		jsonMode = "On"
+	}
+	l.indicator = append(l.indicator, fmt.Sprintf(
+		"\n [::b]Explorer[-::] %s%s [::b]JSON[-::] %s%s [::d]E errors | W warnings | N reset | J pretty JSON[-::]",
+		mode, spacer, jsonMode, spacer,
+	)...)
 
 	_, _ = l.Write(l.indicator)
 }

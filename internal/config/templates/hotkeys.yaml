@@ -1,6 +1,54 @@
+# Read-only quick navigation; no destructive actions are bound.
+# Some terminals map Shift+digit to punctuation. Use :<alias> if a hotkey
+# is intercepted by Windows Terminal, PowerShell or the terminal emulator.
 hotKeys:
-  # Examples...
-  # shift-0:
-  #   shortCut: Shift-0
-  #   description: View Workloads
-  #   command: wk k8s-app=cilium
+  quick-pods:
+    shortCut: shift-0
+    description: Pods
+    command: pods
+    keepHistory: true
+  quick-workloads:
+    shortCut: shift-1
+    description: Workloads
+    command: workload
+    keepHistory: true
+  quick-deployments:
+    shortCut: shift-2
+    description: Deployments
+    command: deployments
+    keepHistory: true
+  quick-services:
+    shortCut: shift-3
+    description: Services
+    command: services
+    keepHistory: true
+  quick-events:
+    shortCut: shift-4
+    description: Events
+    command: events
+    keepHistory: true
+  quick-nodes:
+    shortCut: shift-5
+    description: Nodes
+    command: nodes
+    keepHistory: true
+  quick-namespaces:
+    shortCut: shift-6
+    description: Namespaces
+    command: namespaces
+    keepHistory: true
+  quick-pvc:
+    shortCut: shift-7
+    description: Persistent Volume Claims
+    command: persistentvolumeclaims
+    keepHistory: true
+  quick-pulse:
+    shortCut: shift-8
+    description: Cluster pulse dashboard
+    command: pulse
+    keepHistory: true
+  quick-xray:
+    shortCut: shift-9
+    description: Workload relationship explorer
+    command: xray
+    keepHistory: true
