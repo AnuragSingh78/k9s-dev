@@ -16,9 +16,9 @@ import (
 func TestNewStyle(t *testing.T) {
 	s := config.NewStyles()
 
-	assert.Equal(t, config.Color("#07140d"), s.K9s.Body.BgColor)
-	assert.Equal(t, config.Color("#a8eacb"), s.K9s.Body.FgColor)
-	assert.Equal(t, config.Color("#90e6b5"), s.K9s.Frame.Status.NewColor)
+	assert.Equal(t, config.Color("#020804"), s.K9s.Body.BgColor)
+	assert.Equal(t, config.Color("#baffcc"), s.K9s.Body.FgColor)
+	assert.Equal(t, config.Color("#80ff9d"), s.K9s.Frame.Status.NewColor)
 }
 
 func TestColor(t *testing.T) {
@@ -76,9 +76,9 @@ Invalid type. Expected: object, given: array`,
 			if err != nil {
 				assert.Equal(t, u.err, err.Error())
 			}
-			assert.Equal(t, "#a8eacb", s.Body().FgColor.String())
-			assert.Equal(t, "#07140d", s.Body().BgColor.String())
-			assert.Equal(t, "#07140d", s.Table().BgColor.String())
+			assert.Equal(t, "#baffcc", s.Body().FgColor.String())
+			assert.Equal(t, "#020804", s.Body().BgColor.String())
+			assert.Equal(t, "#020804", s.Table().BgColor.String())
 			assert.Equal(t, tcell.NewHexColor(0xa8eacb), s.FgColor())
 			assert.Equal(t, tcell.NewHexColor(0x07140d), s.BgColor())
 			assert.Equal(t, tcell.ColorBlack.TrueColor(), tview.Styles.PrimitiveBackgroundColor)
