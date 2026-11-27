@@ -88,8 +88,8 @@ func (p *PodWorkspace) Init(ctx context.Context) error {
 		return fmt.Errorf("pod workspace requires a selected namespaced pod")
 	}
 
-	p.banner.SetText(fmt.Sprintf(" [#5bf4aa::b] EMERALD / POD WORKSPACE [-:-:-]  %s / %s", tview.Escape(ns), tview.Escape(name)))
-	p.footer.SetText(" [#5bf4aa::b]Tab[-:-:-] panel   [#5bf4aa::b]R[-:-:-] refresh   [#5bf4aa::b]L[-:-:-] full logs   [#5bf4aa::b]E[-:-:-] all events   [#5bf4aa::b]Esc[-:-:-] back")
+	p.banner.SetText(fmt.Sprintf(" [#39ff14::b] EMERALD / POD WORKSPACE [-:-:-]  %s / %s", tview.Escape(ns), tview.Escape(name)))
+	p.footer.SetText(" [#39ff14::b]Tab[-:-:-] panel   [#39ff14::b]R[-:-:-] refresh   [#39ff14::b]L[-:-:-] full logs   [#39ff14::b]E[-:-:-] all events   [#39ff14::b]Esc[-:-:-] back")
 	p.doctor.SetTitle(" POD DOCTOR / DIAGNOSIS ")
 	p.events.SetTitle(" POD EVENTS ")
 	p.logs.SetTitle(" RECENT LOGS / SNAPSHOT ")
@@ -165,7 +165,7 @@ func (p *PodWorkspace) StylesChanged(s *config.Styles) {
 }
 
 func (p *PodWorkspace) renderLoading() {
-	p.doctor.SetText(" [#5bf4aa::]Loading pod status and diagnostics...[-::]")
+	p.doctor.SetText(" [#39ff14::]Loading pod status and diagnostics...[-::]")
 	p.events.SetText(" Loading recent events...")
 	p.logs.SetText(" Loading the last 80 log lines...")
 }
@@ -260,7 +260,7 @@ func (p *PodWorkspace) showError(ctx context.Context, msg string) {
 	}
 	p.app.QueueUpdateDraw(func() {
 		if ctx.Err() == nil {
-			p.doctor.SetText("[#ff6b73::b]POD DOCTOR UNAVAILABLE[-:-:-]\n"+tview.Escape(msg))
+			p.doctor.SetText("[#ff5b6e::b]POD DOCTOR UNAVAILABLE[-:-:-]\n"+tview.Escape(msg))
 			p.events.SetText("Unavailable")
 			p.logs.SetText("Unavailable")
 		}
@@ -286,33 +286,33 @@ func renderPodDiagnosis(pod *v1.Pod, events []v1.Event) string {
 		}
 		restarts += status.RestartCount
 	}
-	fmt.Fprintf(&b, " [#5bf4aa::b]%s[-:-:-]\n", tview.Escape(pod.Name))
+	fmt.Fprintf(&b, " [#39ff14::b]%s[-:-:-]\n", tview.Escape(pod.Name))
 	fmt.Fprintf(&b, " Namespace : %s\n Node      : %s\n Phase     : %s\n Ready     : %d/%d\n Restarts  : %d\n",
 		tview.Escape(pod.Namespace), tview.Escape(pod.Spec.NodeName),
 		tview.Escape(string(pod.Status.Phase)), ready, len(pod.Spec.Containers), restarts)
-	b.WriteString("\n [#5bf4aa::b]DIAGNOSTIC FINDINGS[-:-:-]\n")
+	b.WriteString("\n [#39ff14::b]DIAGNOSTIC FINDINGS[-:-:-]\n")
 	for _, f := range diagnosePod(pod, events) {
-		tint := "#a8eacb"
+		tint := "#baffcc"
 		switch f.level {
 		case "ERROR":
-			tint = "#ff6b73"
+			tint = "#ff5b6e"
 		case "WARN", "EVENT":
-			tint = "#ffc56e"
+			tint = "#ffca58"
 		case "OK":
-			tint = "#51ec89"
+			tint = "#39ff14"
 		}
 		fmt.Fprintf(&b, "\n [%s::b]%s[-:-:-] %s\n", tint, f.level, tview.Escape(f.title))
 		if f.detail != "" {
 			fmt.Fprintf(&b, " %s\n", tview.Escape(f.detail))
 		}
-		fmt.Fprintf(&b, " [#80e6bd::]Next:[-::] %s\n", tview.Escape(f.next))
+		fmt.Fprintf(&b, " [#79ffa2::]Next:[-::] %s\n", tview.Escape(f.next))
 	}
 	return b.String()
 }
 
 func renderPodEvents(events []v1.Event, listErr error) string {
 	if listErr != nil {
-		return "[#ffc56e::b]Events unavailable[-:-:-]\n"+tview.Escape(listErr.Error())+"\n(Pod status and logs may still be available)"
+		return "[#ffca58::b]Events unavailable[-:-:-]\n"+tview.Escape(listErr.Error())+"\n(Pod status and logs may still be available)"
 	}
 	if len(events) == 0 {
 		return " No recent pod events found."
@@ -322,9 +322,9 @@ func renderPodEvents(events []v1.Event, listErr error) string {
 		if i == 20 {
 			break
 		}
-		color := "#a8eacb"
+		color := "#baffcc"
 		if ev.Type == v1.EventTypeWarning {
-			color = "#ffc56e"
+			color = "#ffca58"
 		}
 		fmt.Fprintf(&b, " [%s::b]%s[-:-:-]  %s  %s\n", color, tview.Escape(ev.Type),
 			tview.Escape(ev.Reason), eventTimestamp(ev).Local().Format("15:04:05"))
@@ -358,23 +358,23 @@ func fetchRecentPodLogs(ctx context.Context, dial kubernetes.Interface, pod *v1.
 	}
 	data, err := dial.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, opts).Do(ctx).Raw()
 	if err != nil {
-		return fmt.Sprintf(" [#ffc56e::b]Logs unavailable[-:-:-] (%s)\n %s",
+		return fmt.Sprintf(" [#ffca58::b]Logs unavailable[-:-:-] (%s)\n %s",
 			tview.Escape(container), tview.Escape(err.Error()))
 	}
 	var b strings.Builder
 	if previous {
-		b.WriteString(" [#ffc56e::b]Showing previous container logs (CrashLoopBackOff)[-:-:-]\n")
+		b.WriteString(" [#ffca58::b]Showing previous container logs (CrashLoopBackOff)[-:-:-]\n")
 	} else {
-		b.WriteString(" [#5bf4aa::b]Snapshot: last 80 lines (not live stream)[-:-:-]\n")
+		b.WriteString(" [#39ff14::b]Snapshot: last 80 lines (not live stream)[-:-:-]\n")
 	}
 	fmt.Fprintf(&b, " Container: %s\n\n", tview.Escape(container))
 	for _, line := range strings.Split(strings.TrimRight(string(data), "\n"), "\n") {
-		shade := "#a8eacb"
+		shade := "#baffcc"
 		switch {
 		case strings.Contains(strings.ToUpper(line), "ERROR"), strings.Contains(strings.ToUpper(line), "FATAL"):
-			shade = "#ff6b73"
+			shade = "#ff5b6e"
 		case strings.Contains(strings.ToUpper(line), "WARN"):
-			shade = "#ffc56e"
+			shade = "#ffca58"
 		}
 		fmt.Fprintf(&b, "[%s::]%s[-::]\n", shade, tview.Escape(line))
 	}
