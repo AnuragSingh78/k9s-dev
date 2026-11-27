@@ -19,7 +19,7 @@ K9s is a **terminal user interface (TUI)**, not a traditional click-to-open Wind
 
 ## UI design
 
-The stock theme is now a bundled dark green theme:
+The stock theme is now a bundled phosphor-green-on-black theme:
 
 - Deep forest background and readable mint text
 - Emerald navigation borders, focused rows, prompts and breadcrumbs
@@ -27,6 +27,48 @@ The stock theme is now a bundled dark green theme:
 - Amber warnings and red errors remain visually distinct
 
 **This theme is compiled into the exe**, so first-time users do not have to copy skin files. Existing installations with `k9s.ui.skin` set to a non-stock custom theme continue using that theme; clear the custom skin setting or select `stock` to see Emerald.
+
+## Hacker Phosphor appearance — black, neon green, and monospaced text
+
+The bundled **stock** skin now defaults to a high-contrast, classic hacker
+terminal look:
+
+- Near-black background (`#020804`) with phosphor-green headers and borders
+  (`#39FF14`, `#00E65B`)
+- Clear mint-white text (`#BAFFCC`) for long tables and logs
+- Bright-green selected rows, command-style panel headings and visible Tab focus
+- Amber warnings (`#FFCA58`) and red errors (`#FF5B6E`), **not** green-on-green
+- The original forest-green skin is retained in
+  [skins/emerald-forest-backup.yaml](skins/emerald-forest-backup.yaml)
+  for restoring the previous appearance if preferred
+
+**Font is controlled by Windows Terminal**, not by the K9s executable.
+Changing the K9s skin cannot install a font or alter the terminal's font face.
+
+### Set the hacker font in Windows Terminal
+
+1. Press **Ctrl+,** in Windows Terminal → choose your **Grand Line CMD** profile
+   (or the profile in which you launch `k9s-dev.exe`).
+2. Open **Appearance** → **Font face**: select **Cascadia Mono** (good default)
+   or **JetBrainsMono Nerd Font** if already installed.
+3. Set **Font size** to **12–13 pt**. Use normal weight for readable logs.
+   Optionally select a **filled box cursor**.
+4. For matching terminal colors, open **Settings → Open JSON file** and add
+   the object from [windows-terminal-hacker-scheme.json](windows-terminal-hacker-scheme.json)
+   as an entry in the existing **`schemes` array**.
+5. In your **Grand Line CMD** profile's Appearance settings, select the
+   newly added **K9s Hacker Phosphor** color scheme.
+
+**Do not replace your entire Windows Terminal `settings.json`** with the
+provided scheme object. Merge it into the existing `schemes` array so your
+existing profiles, fonts and keybindings are preserved. Apply the color scheme
+only to the profile used for K9s if you want other terminals unaffected.
+
+The terminal color scheme and font can be changed **without replacing your
+currently working EXE**. The new embedded stock skin colors take effect only
+when running a newly built executable, or by selecting an equivalent custom
+skin. No workload logic, key bindings, pod watcher, log retrieval or RBAC
+behavior changes are intended as part of this visual update.
 
 ## New navigation
 
