@@ -25,11 +25,11 @@ func (o *podOpsDock) initLogExplorer(bg tcell.Color) {
 	o.logTable.SetBorder(true)
 	o.logTable.SetBorderPadding(0, 0, 1, 1)
 	o.logTable.SetBackgroundColor(bg)
-	o.logTable.SetBorderColor(tcell.NewHexColor(0x23724a))
-	o.logTable.SetBorderFocusColor(tcell.NewHexColor(0x5bf4aa))
+	o.logTable.SetBorderColor(tcell.NewHexColor(0x155a2d))
+	o.logTable.SetBorderFocusColor(tcell.NewHexColor(0x39ff14))
 	o.logTable.SetSelectedStyle(tcell.StyleDefault.
-		Foreground(tcell.NewHexColor(0x07140d)).
-		Background(tcell.NewHexColor(0x80e6bd)).
+		Foreground(tcell.NewHexColor(0x020804)).
+		Background(tcell.NewHexColor(0x79ffa2)).
 		Attributes(tcell.AttrBold))
 	o.logTable.SetSelectedFunc(func(row, _ int) {
 		if row <= 0 || row-1 >= len(o.logShown) {
@@ -38,7 +38,7 @@ func (o *podOpsDock) initLogExplorer(bg tcell.Color) {
 		o.showLogDetail(o.logRows[o.logShown[row-1]])
 	})
 
-	o.logs.SetBorderFocusColor(tcell.NewHexColor(0x5bf4aa))
+	o.logs.SetBorderFocusColor(tcell.NewHexColor(0x39ff14))
 	o.logs.SetWrap(true)
 	o.logs.SetScrollable(true)
 	o.logs.SetBorderPadding(0, 0, 1, 1)
@@ -49,8 +49,8 @@ func (o *podOpsDock) initLogExplorer(bg tcell.Color) {
 	o.logSearch.SetLabel(" / Find: ")
 	o.logSearch.SetFieldBackgroundColor(bg)
 	o.logSearch.SetBackgroundColor(bg)
-	o.logSearch.SetFieldTextColor(tcell.NewHexColor(0xa8eacb))
-	o.logSearch.SetLabelColor(tcell.NewHexColor(0x5bf4aa))
+	o.logSearch.SetFieldTextColor(tcell.NewHexColor(0xbaffcc))
+	o.logSearch.SetLabelColor(tcell.NewHexColor(0x39ff14))
 	o.logSearch.SetChangedFunc(func(text string) {
 		o.logFilter = text
 		o.renderLogs()
@@ -111,8 +111,8 @@ func (o *podOpsDock) highlightPane(index int) {
 		index = 1
 	}
 	o.activePane = index
-	normal := tcell.NewHexColor(0x23724a)
-	active := tcell.NewHexColor(0x51ec89)
+	normal := tcell.NewHexColor(0x155a2d)
+	active := tcell.NewHexColor(0x39ff14)
 	// The concrete primitives expose embedded Box setters but their setter
 	// methods return different concrete types, so assign them individually.
 	o.nav.SetBorderColor(normal)
@@ -223,7 +223,7 @@ func (o *podOpsDock) renderLogs() {
 	o.logTable.Clear()
 	for col, title := range []string{"TIME", "LEVEL", "MESSAGE"} {
 		cell := tview.NewTableCell(title).SetSelectable(false)
-		cell.SetTextColor(tcell.NewHexColor(0x80e6bd))
+		cell.SetTextColor(tcell.NewHexColor(0x79ffa2))
 		o.logTable.SetCell(0, col, cell)
 	}
 	for row, index := range o.logShown {
